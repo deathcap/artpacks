@@ -9,10 +9,16 @@ readResourcePack = (zip, names) ->
   console.log 'PATHS=',paths
 
   for path in paths
+    found = false
     for zipEntry in zipEntries    # TODO: could possibly optimize, instead of matching for '*', enumerate all namespaces and test each with most likely first
       if match(zipEntry.entryName, path)
         console.log 'FOUND',path,'AT',zipEntry.entryName
-        #console.log zipEntry.toString()
+        #console.log zipEntry
+        zipEntry.getDataAsync (data, err) ->
+          console.log "decompressed #{zipEntry.entryName} to #{data.length}, err #{err}"
+        found = true
+    if not found
+      console.log "ERROR: couldn't find #{path}!"
 
 nameToPath_RP = (name) ->
   a = name.split '/'

@@ -7,7 +7,7 @@
   match = require('minimatch');
 
   readResourcePack = function(zip, names) {
-    var name, path, paths, zipEntries, zipEntry, _i, _len, _results;
+    var found, name, path, paths, zipEntries, zipEntry, _i, _j, _len, _len1, _results;
     zipEntries = zip.getEntries();
     paths = (function() {
       var _i, _len, _results;
@@ -22,19 +22,22 @@
     _results = [];
     for (_i = 0, _len = paths.length; _i < _len; _i++) {
       path = paths[_i];
-      _results.push((function() {
-        var _j, _len1, _results1;
-        _results1 = [];
-        for (_j = 0, _len1 = zipEntries.length; _j < _len1; _j++) {
-          zipEntry = zipEntries[_j];
-          if (match(zipEntry.entryName, path)) {
-            _results1.push(console.log('FOUND', path, 'AT', zipEntry.entryName));
-          } else {
-            _results1.push(void 0);
-          }
+      found = false;
+      for (_j = 0, _len1 = zipEntries.length; _j < _len1; _j++) {
+        zipEntry = zipEntries[_j];
+        if (match(zipEntry.entryName, path)) {
+          console.log('FOUND', path, 'AT', zipEntry.entryName);
+          zipEntry.getDataAsync(function(data, err) {
+            return console.log("decompressed " + zipEntry.entryName + " to " + data.length + ", err " + err);
+          });
+          found = true;
         }
-        return _results1;
-      })());
+      }
+      if (!found) {
+        _results.push(console.log("ERROR: couldn't find " + path + "!"));
+      } else {
+        _results.push(void 0);
+      }
     }
     return _results;
   };
