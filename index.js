@@ -16,7 +16,7 @@
   };
 
   nameToPath_RP = function(name) {
-    var a, category, namespace, _ref;
+    var a, category, ext, namespace, path, _ref;
     a = name.split('/');
     if (a.length > 1) {
       category = a[0], name = a[1];
@@ -32,7 +32,9 @@
     if (namespace == null) {
       namespace = '*';
     }
-    return [category, namespace, name];
+    ext = '.png';
+    path = "assets/" + namespace + "/textures/" + category + "/" + name + ".png";
+    return path;
   };
 
   console.log(nameToPath_RP('dirt'));

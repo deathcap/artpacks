@@ -18,7 +18,12 @@ nameToPath_RP = (name) ->
   [namespace, name] = a if a.length > 1
   namespace ?= '*'
 
-  return [category,namespace,name]
+  ext = '.png'
+
+  path = "assets/#{namespace}/textures/#{category}/#{name}.png"
+  #return [category,namespace,name]
+  
+  return path
 
 console.log nameToPath_RP('dirt')
 console.log nameToPath_RP('i/stick')
