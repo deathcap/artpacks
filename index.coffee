@@ -1,11 +1,18 @@
 
 AdmZip = require 'adm-zip'
+match = require 'minimatch'
 
 readResourcePack = (zip, names) ->
   zipEntries = zip.getEntries()
 
-  for zipEntry in zipEntries
-    console.log zipEntry.toString()
+  paths = (nameToPath_RP(name) for name in names)
+  console.log 'PATHS=',paths
+
+  for path in paths
+    for zipEntry in zipEntries    # TODO: could possibly optimize, instead of matching for '*', enumerate all namespaces and test each with most likely first
+      if match(zipEntry.entryName, path)
+        console.log 'FOUND',path,'AT',zipEntry.entryName
+        #console.log zipEntry.toString()
 
 nameToPath_RP = (name) ->
   a = name.split '/'
@@ -32,4 +39,5 @@ console.log nameToPath_RP('minecraft:dirt')
 console.log nameToPath_RP('somethingelse:dirt')
 
 zip = new AdmZip('test.zip')
-#readResourcePack zip, ['dirt', 'stone']
+readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
+
