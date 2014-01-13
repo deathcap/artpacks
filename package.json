@@ -10,8 +10,8 @@
     "voxel"
   ],
   "dependencies": {
+    "adm-zip": "~0.4.3"
   },
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "license": "MIT"
 }
