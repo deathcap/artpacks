@@ -3,22 +3,28 @@ AdmZip = require 'adm-zip'
 match = require 'minimatch'
 
 readResourcePack = (zip, names) ->
+  results = {}
   zipEntries = zip.getEntries()
 
-  paths = (nameToPath_RP(name) for name in names)
-  console.log 'PATHS=',paths
+  for name in names
+    pathRP = nameToPath_RP(name)
 
-  for path in paths
     found = false
     for zipEntry in zipEntries    # TODO: could possibly optimize, instead of matching for '*', enumerate all namespaces and test each with most likely first
-      if match(zipEntry.entryName, path)
-        console.log 'FOUND',path,'AT',zipEntry.entryName
+      if match(zipEntry.entryName, pathRP)
+        console.log 'FOUND',pathRP,'AT',zipEntry.entryName
         #console.log zipEntry
-        zipEntry.getDataAsync (data, err) ->
-          console.log "decompressed #{zipEntry.entryName} to #{data.length}, err #{err}"
+        data = zipEntry.getData()
+        console.log "decompressed #{zipEntry.entryName} to #{data.length}"
+
+        results[name] = data
         found = true
     if not found
-      console.log "ERROR: couldn't find #{path}!"
+      console.log "ERROR: couldn't find #{pathRP} in zip!"
+      results[name] = null
+      # TODO: not really an error; fallthrough to next possible artpack
+
+  return results
 
 nameToPath_RP = (name) ->
   a = name.split '/'
@@ -45,5 +51,6 @@ console.log nameToPath_RP('minecraft:dirt')
 console.log nameToPath_RP('somethingelse:dirt')
 
 zip = new AdmZip('test.zip')
-readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
+results = readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
+console.log 'results=',results
 
