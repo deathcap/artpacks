@@ -7,7 +7,7 @@
   path = require('path');
 
   readResourcePack = function(zip, names) {
-    var data, found, name, namespace, namespaces, pathRP, results, tryPathRP, zipEntries, zipEntry, _i, _j, _len, _len1;
+    var data, found, name, namespace, namespaces, pathRP, results, tryPath, tryPaths, zipEntries, zipEntry, _i, _j, _len, _len1;
     results = {};
     namespaces = getNamespaces_RP(zip);
     zipEntries = zip.getEntries();
@@ -15,10 +15,22 @@
       name = names[_i];
       pathRP = nameToPath_RP(name);
       found = false;
-      for (_j = 0, _len1 = namespaces.length; _j < _len1; _j++) {
-        namespace = namespaces[_j];
-        tryPathRP = pathRP.replace('*', namespace);
-        zipEntry = zip.getEntry(tryPathRP);
+      if (pathRP.indexOf('*') === -1) {
+        tryPaths = [pathRP];
+      } else {
+        tryPaths = (function() {
+          var _j, _len1, _results;
+          _results = [];
+          for (_j = 0, _len1 = namespaces.length; _j < _len1; _j++) {
+            namespace = namespaces[_j];
+            _results.push(pathRP.replace('*', namespace));
+          }
+          return _results;
+        })();
+      }
+      for (_j = 0, _len1 = tryPaths.length; _j < _len1; _j++) {
+        tryPath = tryPaths[_j];
+        zipEntry = zip.getEntry(tryPath);
         if (zipEntry != null) {
           console.log('FOUND', pathRP, 'AT', zipEntry.entryName);
           data = zipEntry.getData();
@@ -29,7 +41,7 @@
         }
       }
       if (!found) {
-        console.log("ERROR: couldn't find " + pathRP + " in zip!");
+        console.log("ERROR: couldn't find " + pathRP + " anywhere in zip! (tried " + tryPaths + ")");
         results[name] = null;
       }
     }

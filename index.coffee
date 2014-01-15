@@ -12,10 +12,15 @@ readResourcePack = (zip, names) ->
 
     found = false
 
-    for namespace in namespaces  # TODO: only try each namespace if '*'
-      tryPathRP = pathRP.replace('*', namespace)
+    # expand namespace wildcard, if any
+    if pathRP.indexOf('*') == -1
+      tryPaths = [pathRP]
+    else
+      tryPaths = (pathRP.replace('*', namespace) for namespace in namespaces)
 
-      zipEntry = zip.getEntry(tryPathRP)
+
+    for tryPath in tryPaths
+      zipEntry = zip.getEntry(tryPath)
       if zipEntry?
         console.log 'FOUND',pathRP,'AT',zipEntry.entryName
         #console.log zipEntry
@@ -27,7 +32,7 @@ readResourcePack = (zip, names) ->
         break
 
     if not found
-      console.log "ERROR: couldn't find #{pathRP} in zip!"
+      console.log "ERROR: couldn't find #{pathRP} anywhere in zip! (tried #{tryPaths})"
       results[name] = null
       # TODO: not really an error; fallthrough to next possible artpack
 
