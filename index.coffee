@@ -42,35 +42,36 @@ class ArtPack
 
     return Object.keys(namespaces)
 
+  read: (name) ->
+    pathRP = nameToPath_RP(name)
+
+    found = false
+
+    # expand namespace wildcard, if any
+    if pathRP.indexOf('*') == -1
+      tryPaths = [pathRP]
+    else
+      tryPaths = (pathRP.replace('*', namespace) for namespace in @namespaces)
+
+    for tryPath in tryPaths
+      zipEntry = @zip.getEntry(tryPath)
+      if zipEntry?
+        console.log 'FOUND',pathRP,'AT',zipEntry.entryName
+        #console.log zipEntry
+        data = zipEntry.getData()
+        console.log "decompressed #{zipEntry.entryName} to #{data.length}"
+
+        return data
+
+    return undefined # not found
+
   readAll: (names) ->
     results = {}
     for name in names
-      pathRP = nameToPath_RP(name)
-
-      found = false
-
-      # expand namespace wildcard, if any
-      if pathRP.indexOf('*') == -1
-        tryPaths = [pathRP]
-      else
-        tryPaths = (pathRP.replace('*', namespace) for namespace in @namespaces)
-
-      for tryPath in tryPaths
-        zipEntry = @zip.getEntry(tryPath)
-        if zipEntry?
-          console.log 'FOUND',pathRP,'AT',zipEntry.entryName
-          #console.log zipEntry
-          data = zipEntry.getData()
-          console.log "decompressed #{zipEntry.entryName} to #{data.length}"
-
-          results[name] = data
-          found = true
-          break
-
-      if not found
-        console.log "ERROR: couldn't find #{pathRP} anywhere in zip! (tried #{tryPaths})"
-        results[name] = null
-        # TODO: not really an error; fallthrough to next possible artpack
+      data = @read(name)
+      if not data?
+        console.log "WARNING: nothing found for #{name}"  # TODO: try next
+      results[name] = data
 
     return results
 

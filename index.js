@@ -58,43 +58,47 @@
       return Object.keys(namespaces);
     };
 
+    ArtPack.prototype.read = function(name) {
+      var data, found, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _len;
+      pathRP = nameToPath_RP(name);
+      found = false;
+      if (pathRP.indexOf('*') === -1) {
+        tryPaths = [pathRP];
+      } else {
+        tryPaths = (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.namespaces;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            namespace = _ref[_i];
+            _results.push(pathRP.replace('*', namespace));
+          }
+          return _results;
+        }).call(this);
+      }
+      for (_i = 0, _len = tryPaths.length; _i < _len; _i++) {
+        tryPath = tryPaths[_i];
+        zipEntry = this.zip.getEntry(tryPath);
+        if (zipEntry != null) {
+          console.log('FOUND', pathRP, 'AT', zipEntry.entryName);
+          data = zipEntry.getData();
+          console.log("decompressed " + zipEntry.entryName + " to " + data.length);
+          return data;
+        }
+      }
+      return void 0;
+    };
+
     ArtPack.prototype.readAll = function(names) {
-      var data, found, name, namespace, pathRP, results, tryPath, tryPaths, zipEntry, _i, _j, _len, _len1;
+      var data, name, results, _i, _len;
       results = {};
       for (_i = 0, _len = names.length; _i < _len; _i++) {
         name = names[_i];
-        pathRP = nameToPath_RP(name);
-        found = false;
-        if (pathRP.indexOf('*') === -1) {
-          tryPaths = [pathRP];
-        } else {
-          tryPaths = (function() {
-            var _j, _len1, _ref, _results;
-            _ref = this.namespaces;
-            _results = [];
-            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-              namespace = _ref[_j];
-              _results.push(pathRP.replace('*', namespace));
-            }
-            return _results;
-          }).call(this);
+        data = this.read(name);
+        if (data == null) {
+          console.log("WARNING: nothing found for " + name);
         }
-        for (_j = 0, _len1 = tryPaths.length; _j < _len1; _j++) {
-          tryPath = tryPaths[_j];
-          zipEntry = this.zip.getEntry(tryPath);
-          if (zipEntry != null) {
-            console.log('FOUND', pathRP, 'AT', zipEntry.entryName);
-            data = zipEntry.getData();
-            console.log("decompressed " + zipEntry.entryName + " to " + data.length);
-            results[name] = data;
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          console.log("ERROR: couldn't find " + pathRP + " anywhere in zip! (tried " + tryPaths + ")");
-          results[name] = null;
-        }
+        results[name] = data;
       }
       return results;
     };
