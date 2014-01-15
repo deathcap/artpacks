@@ -5,6 +5,7 @@ path = require 'path'
 readResourcePack = (zip, names) ->
   results = {}
   namespaces = getNamespaces_RP(zip)
+  namespaces.push 'foo' # test
   zipEntries = zip.getEntries()
 
   for name in names
@@ -81,6 +82,6 @@ console.log nameToPath_RP('somethingelse:dirt')
 
 zip = new AdmZip('test.zip')
 
-results = readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
+results = readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
 console.log 'results=',results
 

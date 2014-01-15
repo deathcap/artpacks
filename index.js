@@ -10,6 +10,7 @@
     var data, found, name, namespace, namespaces, pathRP, results, tryPath, tryPaths, zipEntries, zipEntry, _i, _j, _len, _len1;
     results = {};
     namespaces = getNamespaces_RP(zip);
+    namespaces.push('foo');
     zipEntries = zip.getEntries();
     for (_i = 0, _len = names.length; _i < _len; _i++) {
       name = names[_i];
@@ -103,7 +104,7 @@
 
   zip = new AdmZip('test.zip');
 
-  results = readResourcePack(zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']);
+  results = readResourcePack(zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']);
 
   console.log('results=', results);
 
