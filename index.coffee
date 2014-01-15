@@ -1,18 +1,22 @@
 
 AdmZip = require 'adm-zip'
-match = require 'minimatch'
 path = require 'path'
 
 readResourcePack = (zip, names) ->
   results = {}
+  namespaces = getNamespaces_RP(zip)
   zipEntries = zip.getEntries()
 
   for name in names
     pathRP = nameToPath_RP(name)
 
     found = false
-    for zipEntry in zipEntries    # TODO: could possibly optimize, instead of matching for '*', enumerate all namespaces and test each with most likely first
-      if match(zipEntry.entryName, pathRP)
+
+    for namespace in namespaces  # TODO: only try each namespace if '*'
+      tryPathRP = pathRP.replace('*', namespace)
+
+      zipEntry = zip.getEntry(tryPathRP)
+      if zipEntry?
         console.log 'FOUND',pathRP,'AT',zipEntry.entryName
         #console.log zipEntry
         data = zipEntry.getData()
@@ -20,6 +24,8 @@ readResourcePack = (zip, names) ->
 
         results[name] = data
         found = true
+        break
+
     if not found
       console.log "ERROR: couldn't find #{pathRP} in zip!"
       results[name] = null
@@ -69,9 +75,6 @@ console.log nameToPath_RP('minecraft:dirt')
 console.log nameToPath_RP('somethingelse:dirt')
 
 zip = new AdmZip('test.zip')
-
-console.log 'ns=',getNamespaces_RP(zip)
-process.exit()
 
 results = readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
 console.log 'results=',results

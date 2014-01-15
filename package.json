@@ -10,8 +10,7 @@
     "voxel"
   ],
   "dependencies": {
-    "adm-zip": "~0.4.3",
-    "minimatch": "~0.2.14"
+    "adm-zip": "~0.4.3"
   },
   "scripts": {
     "start": "node index.js"
