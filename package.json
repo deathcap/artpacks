@@ -13,6 +13,9 @@
     "adm-zip": "~0.4.3",
     "minimatch": "~0.2.14"
   },
+  "scripts": {
+    "start": "node index.js"
+  },
   "peerDependencies": {},
   "license": "MIT"
 }
