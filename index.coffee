@@ -1,6 +1,7 @@
 
 AdmZip = require 'adm-zip'
 match = require 'minimatch'
+path = require 'path'
 
 readResourcePack = (zip, names) ->
   results = {}
@@ -39,10 +40,27 @@ nameToPath_RP = (name) ->
 
   ext = '.png'
 
-  path = "assets/#{namespace}/textures/#{category}/#{name}.png"
+  pathRP = "assets/#{namespace}/textures/#{category}/#{name}.png"
   #return [category,namespace,name]
   
-  return path
+  return pathRP
+
+# Get list of "namespaces" with a resourcepack
+# all of assets/<foo>
+getNamespaces_RP = (zip) ->
+  zipEntries = zip.getEntries()
+
+  namespaces = {}
+
+  for zipEntry in zipEntries
+    parts = zipEntry.entryName.split(path.sep)
+    continue if parts.length < 2
+    continue if parts[0] != 'assets'
+    continue if parts[1].length == 0
+
+    namespaces[parts[1]] = true
+
+  return Object.keys(namespaces)
 
 console.log nameToPath_RP('dirt')
 console.log nameToPath_RP('i/stick')
@@ -51,6 +69,10 @@ console.log nameToPath_RP('minecraft:dirt')
 console.log nameToPath_RP('somethingelse:dirt')
 
 zip = new AdmZip('test.zip')
+
+console.log 'ns=',getNamespaces_RP(zip)
+process.exit()
+
 results = readResourcePack zip, ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt']
 console.log 'results=',results
 
