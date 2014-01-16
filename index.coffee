@@ -2,6 +2,26 @@
 AdmZip = require 'adm-zip'
 path = require 'path'
 
+class ArtPacks
+  constructor: (packs) ->
+    @packs = []
+
+    for pack in packs
+      @addPack pack
+
+  addPack: (pack) ->
+    if typeof pack == 'string'  # filename
+      @packs.push new ArtPackArchive(pack)
+    else
+      @packs.push pack  # assumed to be ArtPackArchive
+
+  getTexture: (name) ->
+    for pack in @packs    # search packs in order
+      data = pack.read(name)
+      return data if data?
+
+    return undefined
+
 nameToPath_RP = (name) ->
   a = name.split '/'
   [category, name] = a if a.length > 1
@@ -20,7 +40,7 @@ nameToPath_RP = (name) ->
   
   return pathRP
 
-class ArtPack
+class ArtPackArchive
   constructor: (@filename) ->
     @zip = new AdmZip(@filename)
     @zipEntries = @zip.getEntries()
@@ -56,10 +76,10 @@ class ArtPack
     for tryPath in tryPaths
       zipEntry = @zip.getEntry(tryPath)
       if zipEntry?
-        console.log 'FOUND',pathRP,'AT',zipEntry.entryName
+        #console.log 'FOUND',pathRP,'AT',zipEntry.entryName
         #console.log zipEntry
         data = zipEntry.getData()
-        console.log "decompressed #{zipEntry.entryName} to #{data.length}"
+        #console.log "decompressed #{zipEntry.entryName} to #{data.length}"
 
         return data
 
@@ -76,14 +96,16 @@ class ArtPack
     return results
 
 
-console.log nameToPath_RP('dirt')
-console.log nameToPath_RP('i/stick')
-console.log nameToPath_RP('misc/shadow')
-console.log nameToPath_RP('minecraft:dirt')
-console.log nameToPath_RP('somethingelse:dirt')
+#console.log nameToPath_RP('dirt')
+#console.log nameToPath_RP('i/stick')
+#console.log nameToPath_RP('misc/shadow')
+#console.log nameToPath_RP('minecraft:dirt')
+#console.log nameToPath_RP('somethingelse:dirt')
 
-ap = new ArtPack('test.zip')
+aps = new ArtPacks ['test.zip', 'test2.zip']
 
-results = ap.readAll ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
-console.log 'results=',results
+for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
+  data = aps.getTexture(name)
+
+  console.log name,'=',data
 
