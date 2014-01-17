@@ -4,7 +4,7 @@
 
   createArtPacks = require('./');
 
-  urls = ['test2.zip', 'test.zip'];
+  urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip'];
 
   aps = createArtPacks(urls);
 
