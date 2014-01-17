@@ -134,53 +134,47 @@ class ArtPackArchive
 #console.log nameToPath_RP('minecraft:dirt')
 #console.log nameToPath_RP('somethingelse:dirt')
 
-binaryXHR 'test.zip', (err, pack1) ->
-  return console.log err if err
-  binaryXHR 'test2.zip', (err, pack2) ->
-    return console.log err if err
+aps = new ArtPacks ['test2.zip', 'test.zip', 'testsnd.zip']
+aps.on 'loaded', (packs) ->
+  return if packs.length != 3 # not all loaded yet
 
-    binaryXHR 'testsnd.zip', (err, pack3) ->
-      return console.log err if err
+  console.log(aps)
+  for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
+    document.body.appendChild document.createTextNode name + ' = '
 
-      aps = new ArtPacks [pack2, pack1, pack3]
+    blob = aps.getTexture(name)
+    if not blob?
+      document.body.appendChild document.createTextNode '(not found)'
+    else
+      url = URL.createObjectURL(blob)
 
-      console.log(aps)
-      for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
-        document.body.appendChild document.createTextNode name + ' = '
+      img = document.createElement 'img'
+      img.src = url
+      img.title = name
 
-        blob = aps.getTexture(name)
-        if not blob?
-          document.body.appendChild document.createTextNode '(not found)'
-        else
-          url = URL.createObjectURL(blob)
+      document.body.appendChild img
 
-          img = document.createElement 'img'
-          img.src = url
-          img.title = name
+      #URL.revokeObjectURL(url) # TODO?
 
-          document.body.appendChild img
+    document.body.appendChild document.createElement 'br'
 
-          #URL.revokeObjectURL(url) # TODO?
+  for name in ['ambient/cave/cave1', 'damage/hit2']
+    document.body.appendChild document.createTextNode 'sound ' + name + ' = '
+    blob = aps.getSound(name)
 
-        document.body.appendChild document.createElement 'br'
+    if not blob?
+      document.body.appendChild document.createTextNode '(not found)'
+    else
+      url = URL.createObjectURL(blob)
 
-      for name in ['ambient/cave/cave1', 'damage/hit2']
-        document.body.appendChild document.createTextNode 'sound ' + name + ' = '
-        blob = aps.getSound(name)
+      audio = document.createElement 'audio'
+      audio.src = url
+      audio.controls = true
+      audio.title = name
 
-        if not blob?
-          document.body.appendChild document.createTextNode '(not found)'
-        else
-          url = URL.createObjectURL(blob)
+      document.body.appendChild audio
 
-          audio = document.createElement 'audio'
-          audio.src = url
-          audio.controls = true
-          audio.title = name
-
-          document.body.appendChild audio
-
-          #URL.revokeObjectURL(url) # TODO?
+      #URL.revokeObjectURL(url) # TODO?
 
 
-        document.body.appendChild document.createElement 'br'
+    document.body.appendChild document.createElement 'br'
