@@ -17,7 +17,7 @@
     "binary-xhr": "0.0.1"
   },
   "scripts": {
-    "start": "beefy index.js"
+    "start": "beefy demo.js"
   },
   "peerDependencies": {},
   "license": "MIT"
