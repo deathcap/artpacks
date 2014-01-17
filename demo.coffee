@@ -1,12 +1,25 @@
 
 createArtPacks = require './'
 
-aps = createArtPacks ['test2.zip', 'test.zip', 'testsnd.zip']
+#urls = ['test2.zip', 'test.zip', 'testsnd.zip']
+urls = ['test2.zip', 'test.zip']
+
+aps = createArtPacks urls
 aps.on 'loaded', (packs) ->
-  return if packs.length != 3 # not all loaded yet
+  return if packs.length != urls.length  # not all loaded yet
 
   console.log(aps)
-  for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
+  for name in [
+    'dirt',         # block, any namespace
+    'blocks/dirt',  # longhand block
+    'i/stick',      # item shorthand, any namespace
+    'items/stick',  # longhand item
+    #'misc/shadow', # other texture type
+    'minecraft:dirt',   # explicit namespace, block
+    'somethingelse:dirt',   # non-existent namespace
+    'invalid'               # non-existent block
+    ]
+
     document.body.appendChild document.createTextNode name + ' = '
 
     blob = aps.getTexture(name)
@@ -25,14 +38,15 @@ aps.on 'loaded', (packs) ->
 
     document.body.appendChild document.createElement 'br'
 
-  for name in ['ambient/cave/cave1', 'damage/hit2']
-    document.body.appendChild document.createTextNode 'sound ' + name + ' = '
+  for name in ['liquid/splash']
+    document.body.appendChild document.createTextNode 'sound: ' + name + ' = '
     blob = aps.getSound(name)
 
     if not blob?
       document.body.appendChild document.createTextNode '(not found)'
     else
       url = URL.createObjectURL(blob)
+      console.log url
 
       audio = document.createElement 'audio'
       audio.src = url
