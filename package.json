@@ -1,6 +1,6 @@
 {
   "name": "artpacks",
-  "description": "",
+  "description": "cascading texture/sound artwork pack loader",
   "version": "0.0.1",
   "repository": {
     "type": "git",
