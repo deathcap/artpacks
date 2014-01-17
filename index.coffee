@@ -19,8 +19,8 @@ class ArtPacks
 
   getTexture: (name) ->
     for pack in @packs    # search packs in order
-      data = pack.read(name)
-      return data if data?
+      blob = pack.getBlob(name)
+      return blob if blob?
 
     return undefined
 
@@ -71,7 +71,7 @@ class ArtPackArchive
 
     return Object.keys(namespaces)
 
-  read: (name) ->
+  getArrayBuffer: (name) ->
     pathRP = nameToPath_RP(name)
 
     found = false
@@ -94,6 +94,8 @@ class ArtPackArchive
 
     return undefined # not found
 
+  getBlob: (name) ->
+    return new Blob [@getArrayBuffer name]
 
 #console.log nameToPath_RP('dirt')
 #console.log nameToPath_RP('i/stick')
@@ -110,7 +112,6 @@ binaryXHR 'test.zip', (err, pack1) ->
 
     console.log(aps)
     for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
-      data = aps.getTexture(name)
-
-      console.log name,'=',data
+      blob = aps.getTexture(name)
+      console.log name,'=',blob
 

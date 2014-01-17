@@ -29,13 +29,13 @@
     };
 
     ArtPacks.prototype.getTexture = function(name) {
-      var data, pack, _i, _len, _ref;
+      var blob, pack, _i, _len, _ref;
       _ref = this.packs;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
-        data = pack.read(name);
-        if (data != null) {
-          return data;
+        blob = pack.getBlob(name);
+        if (blob != null) {
+          return blob;
         }
       }
       return void 0;
@@ -103,7 +103,7 @@
       return Object.keys(namespaces);
     };
 
-    ArtPackArchive.prototype.read = function(name) {
+    ArtPackArchive.prototype.getArrayBuffer = function(name) {
       var data, found, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _len;
       pathRP = nameToPath_RP(name);
       found = false;
@@ -132,6 +132,10 @@
       return void 0;
     };
 
+    ArtPackArchive.prototype.getBlob = function(name) {
+      return new Blob([this.getArrayBuffer(name)]);
+    };
+
     return ArtPackArchive;
 
   })();
@@ -141,7 +145,7 @@
       return console.log(err);
     }
     return binaryXHR('test2.zip', function(err, pack2) {
-      var aps, data, name, _i, _len, _ref, _results;
+      var aps, blob, name, _i, _len, _ref, _results;
       if (err) {
         return console.log(err);
       }
@@ -151,8 +155,8 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         name = _ref[_i];
-        data = aps.getTexture(name);
-        _results.push(console.log(name, '=', data));
+        blob = aps.getTexture(name);
+        _results.push(console.log(name, '=', blob));
       }
       return _results;
     });
