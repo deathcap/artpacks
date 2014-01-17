@@ -7,10 +7,13 @@
     "url": "git@github.com:deathcap/artpack.git"
   },
   "keywords": [
-    "voxel"
+    "art",
+    "artwork",
+    "packs",
+    "textures"
   ],
   "dependencies": {
-    "adm-zip": "~0.4.3"
+    "zip": "~1.1.1"
   },
   "scripts": {
     "start": "node index.js"

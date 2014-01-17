@@ -1,6 +1,7 @@
 
-AdmZip = require 'adm-zip'
+ZIP = require 'zip'
 path = require 'path'
+fs = require 'fs'
 
 class ArtPacks
   constructor: (packs) ->
@@ -42,8 +43,12 @@ nameToPath_RP = (name) ->
 
 class ArtPackArchive
   constructor: (@filename) ->
-    @zip = new AdmZip(@filename)
-    @zipEntries = @zip.getEntries()
+    @zip = new ZIP.Reader(fs.readFileSync(@filename)) # TODO
+
+    @zipEntries = {}
+    @zip.forEach (entry) =>
+      @zipEntries[entry.getName()] = entry
+
     @namespaces = @scanNamespaces()
     @namespaces.push 'foo'  # test
 
@@ -52,8 +57,8 @@ class ArtPackArchive
   scanNamespaces: () -> # TODO: only if RP
     namespaces = {}
 
-    for zipEntry in @zipEntries
-      parts = zipEntry.entryName.split(path.sep)
+    for zipEntryName in Object.keys(@zipEntries)
+      parts = zipEntryName.split(path.sep)
       continue if parts.length < 2
       continue if parts[0] != 'assets'
       continue if parts[1].length == 0
@@ -74,7 +79,7 @@ class ArtPackArchive
       tryPaths = (pathRP.replace('*', namespace) for namespace in @namespaces)
 
     for tryPath in tryPaths
-      zipEntry = @zip.getEntry(tryPath)
+      zipEntry = @zipEntries[tryPath]
       if zipEntry?
         #console.log 'FOUND',pathRP,'AT',zipEntry.entryName
         #console.log zipEntry
