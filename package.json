@@ -1,10 +1,10 @@
 {
-  "name": "artpack",
+  "name": "artpacks",
   "description": "",
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "git@github.com:deathcap/artpack.git"
+    "url": "git@github.com:deathcap/artpacks.git"
   },
   "keywords": [
     "art",
