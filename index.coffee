@@ -111,10 +111,10 @@ binaryXHR 'test.zip', (err, pack1) ->
   binaryXHR 'test2.zip', (err, pack2) ->
     return console.log err if err
 
-    aps = new ArtPacks [pack1, pack2]
+    aps = new ArtPacks [pack2, pack1]
 
     console.log(aps)
-    for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
+    for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid']
       document.body.appendChild document.createTextNode name + ' = '
 
       blob = aps.getTexture(name)

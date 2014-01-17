@@ -156,9 +156,9 @@
       if (err) {
         return console.log(err);
       }
-      aps = new ArtPacks([pack1, pack2]);
+      aps = new ArtPacks([pack2, pack1]);
       console.log(aps);
-      _ref = ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur'];
+      _ref = ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         name = _ref[_i];
