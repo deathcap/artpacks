@@ -133,7 +133,14 @@
     };
 
     ArtPackArchive.prototype.getBlob = function(name) {
-      return new Blob([this.getArrayBuffer(name)]);
+      var arrayBuffer;
+      arrayBuffer = this.getArrayBuffer(name);
+      if (arrayBuffer == null) {
+        return void 0;
+      }
+      return new Blob([arrayBuffer], {
+        type: 'image/png'
+      });
     };
 
     return ArtPackArchive;
@@ -145,7 +152,7 @@
       return console.log(err);
     }
     return binaryXHR('test2.zip', function(err, pack2) {
-      var aps, blob, name, _i, _len, _ref, _results;
+      var aps, blob, img, name, url, _i, _len, _ref, _results;
       if (err) {
         return console.log(err);
       }
@@ -155,8 +162,19 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         name = _ref[_i];
+        document.body.appendChild(document.createTextNode(name + ' = '));
         blob = aps.getTexture(name);
-        _results.push(console.log(name, '=', blob));
+        if (blob == null) {
+          document.body.appendChild(document.createTextNode('(not found)'));
+        } else {
+          url = URL.createObjectURL(blob);
+          console.log(name, '=', blob, url);
+          img = document.createElement('img');
+          img.src = url;
+          img.title = name;
+          document.body.appendChild(img);
+        }
+        _results.push(document.body.appendChild(document.createElement('br')));
       }
       return _results;
     });

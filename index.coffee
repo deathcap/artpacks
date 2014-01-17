@@ -95,7 +95,10 @@ class ArtPackArchive
     return undefined # not found
 
   getBlob: (name) ->
-    return new Blob [@getArrayBuffer name]
+    arrayBuffer = @getArrayBuffer name
+    return undefined if not arrayBuffer?
+
+    return new Blob [arrayBuffer], {type: 'image/png'}
 
 #console.log nameToPath_RP('dirt')
 #console.log nameToPath_RP('i/stick')
@@ -112,6 +115,19 @@ binaryXHR 'test.zip', (err, pack1) ->
 
     console.log(aps)
     for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
-      blob = aps.getTexture(name)
-      console.log name,'=',blob
+      document.body.appendChild document.createTextNode name + ' = '
 
+      blob = aps.getTexture(name)
+      if not blob?
+        document.body.appendChild document.createTextNode '(not found)'
+      else
+        url = URL.createObjectURL(blob)
+        console.log name,'=',blob,url
+
+        img = document.createElement 'img'
+        img.src = url
+        img.title = name
+
+        document.body.appendChild img
+
+      document.body.appendChild document.createElement 'br'
