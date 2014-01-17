@@ -3,10 +3,12 @@ ZIP = require 'zip'
 path = require 'path'
 fs = require 'fs'
 binaryXHR = require 'binary-xhr'
+EventEmitter = (require 'events').EventEmitter
 
-class ArtPacks
+class ArtPacks extends EventEmitter
   constructor: (packs) ->
     @packs = []
+    @pending = {}
 
     for pack in packs
       @addPack pack
@@ -14,6 +16,12 @@ class ArtPacks
   addPack: (pack) ->
     if pack instanceof ArrayBuffer # raw zip archive data
       @packs.push new ArtPackArchive(pack)
+    else if typeof pack == 'string' # URL to load
+      @pending[pack] = true
+      binaryXHR pack, (err, packData) =>
+        @packs.push new ArtPackArchive(packData)
+        delete @pending[pack]
+        @emit 'loaded', @packs
     else
       @packs.push pack  # assumed to be ArtPackArchive
 
