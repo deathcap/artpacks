@@ -132,20 +132,6 @@
       return void 0;
     };
 
-    ArtPackArchive.prototype.readAll = function(names) {
-      var data, name, results, _i, _len;
-      results = {};
-      for (_i = 0, _len = names.length; _i < _len; _i++) {
-        name = names[_i];
-        data = this.read(name);
-        if (data == null) {
-          console.log("WARNING: nothing found for " + name);
-        }
-        results[name] = data;
-      }
-      return results;
-    };
-
     return ArtPackArchive;
 
   })();

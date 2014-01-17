@@ -94,16 +94,6 @@ class ArtPackArchive
 
     return undefined # not found
 
-  readAll: (names) ->
-    results = {}
-    for name in names
-      data = @read(name)
-      if not data?
-        console.log "WARNING: nothing found for #{name}"  # TODO: try next
-      results[name] = data
-
-    return results
-
 
 #console.log nameToPath_RP('dirt')
 #console.log nameToPath_RP('i/stick')
