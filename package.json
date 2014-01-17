@@ -13,10 +13,11 @@
     "textures"
   ],
   "dependencies": {
-    "zip": "~1.1.1"
+    "zip": "git://github.com/deathcap/zip.git#355017855dbf117c53d0638a6ca6747baa03750f",
+    "binary-xhr": "0.0.1"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "beefy index.js"
   },
   "peerDependencies": {},
   "license": "MIT"

@@ -2,6 +2,7 @@
 ZIP = require 'zip'
 path = require 'path'
 fs = require 'fs'
+binaryXHR = require 'binary-xhr'
 
 class ArtPacks
   constructor: (packs) ->
@@ -11,7 +12,7 @@ class ArtPacks
       @addPack pack
 
   addPack: (pack) ->
-    if typeof pack == 'string'  # filename
+    if pack instanceof ArrayBuffer # raw zip archive data
       @packs.push new ArtPackArchive(pack)
     else
       @packs.push pack  # assumed to be ArtPackArchive
@@ -42,8 +43,11 @@ nameToPath_RP = (name) ->
   return pathRP
 
 class ArtPackArchive
-  constructor: (@filename) ->
-    @zip = new ZIP.Reader(fs.readFileSync(@filename)) # TODO
+  constructor: (packData) ->
+    if packData instanceof ArrayBuffer
+      # convert browser ArrayBuffer to NodeJS Buffer so ZIP recognizes it as data
+      packData = new Buffer(new Uint8Array(packData))
+    @zip = new ZIP.Reader(packData)
 
     @zipEntries = {}
     @zip.forEach (entry) =>
@@ -107,10 +111,16 @@ class ArtPackArchive
 #console.log nameToPath_RP('minecraft:dirt')
 #console.log nameToPath_RP('somethingelse:dirt')
 
-aps = new ArtPacks ['test.zip', 'test2.zip']
+binaryXHR 'test.zip', (err, pack1) ->
+  return console.log err if err
+  binaryXHR 'test2.zip', (err, pack2) ->
+    return console.log err if err
 
-for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
-  data = aps.getTexture(name)
+    aps = new ArtPacks [pack1, pack2]
 
-  console.log name,'=',data
+    console.log(aps)
+    for name in ['dirt', 'i/stick', 'misc/shadow', 'minecraft:dirt', 'somethingelse:dirt', 'invalid', 'misc/pumpkinblur']
+      data = aps.getTexture(name)
+
+      console.log name,'=',data
 
