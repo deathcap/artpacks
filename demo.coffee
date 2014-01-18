@@ -12,11 +12,11 @@ container.style.width = '90%'
 container.style.border = '5px dotted black'
 document.body.appendChild(container)
 
-aps = createArtPacks urls
-aps.on 'loadedURL', (url) ->
+packs = createArtPacks urls
+packs.on 'loadedURL', (url) ->
   console.log 'Loaded ',url
 
-showTextures = (aps) ->
+showTextures = () ->
   for name in [
     'dirt',         # block, any namespace
     'blocks/dirt',  # longhand block
@@ -30,7 +30,7 @@ showTextures = (aps) ->
 
     container.appendChild document.createTextNode name + ' = '
 
-    url = aps.getTexture(name)
+    url = packs.getTexture(name)
     if not url?
       container.appendChild document.createTextNode '(not found)'
     else
@@ -44,10 +44,10 @@ showTextures = (aps) ->
 
     container.appendChild document.createElement 'br'
 
-showSounds = (aps) ->
+showSounds = () ->
   for name in ['liquid/splash']
     container.appendChild document.createTextNode 'sound: ' + name + ' = '
-    url = aps.getSound(name)
+    url = packs.getSound(name)
 
     if not url?
       container.appendChild document.createTextNode '(not found)'
@@ -81,8 +81,8 @@ showControls = () ->
   audio.style.visibility = 'hidden'
   container.appendChild audio
 
-  document.body.addEventListener 'keyup', (ev) ->
-    url = aps.getTexture(input.value)
+  showSample = () ->
+    url = packs.getTexture(input.value)
     console.log "lookup #{input.value} = #{url}"
     if url?
       img.src = url
@@ -90,19 +90,34 @@ showControls = () ->
     else
       img.style.visibility = 'hidden'
       # maybe it is a sound? (note: different namespaces, obviously)
-      url = aps.getSound(input.value)
+      url = packs.getSound(input.value)
       if url?
         audio.src = url
         audio.style.visibility = ''
       else
         audio.style.visibility = 'hidden'
 
+  document.body.addEventListener 'keyup', showSample
+  input.value = 'stone'
+  showSample()
 
-aps.on 'loadedAll', (packs) ->
-  console.log(aps)
+showInfo = () ->
+  ps = packs.getLoadedPacks()
+  s = "Loaded #{ps.length} packs: "
+  for p in ps
+    s += "#{p} "
+
+  container.appendChild document.createTextNode s
+  container.appendChild document.createElement 'br'
+  container.appendChild document.createElement 'br'
+
+packs.on 'loadedAll', (packs) ->
+  console.log "Loaded all packs"
   container.removeChild(container.firstChild) while container.firstChild
-  showTextures(aps)
-  showSounds(aps)
+
+  showInfo()
+  showTextures()
+  showSounds()
   showControls()
 
 
@@ -131,9 +146,9 @@ drop = (mouseEvent) ->
 
       if not mouseEvent.shiftKey
         # start over, replacing all current packs - unless shift is held down (then add to)
-        aps.clear()
+        packs.clear()
 
-      aps.addPack arrayBuffer
+      packs.addPack arrayBuffer, file.name
 
     reader.readAsArrayBuffer(file)
 

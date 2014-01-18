@@ -14,10 +14,10 @@ class ArtPacks extends EventEmitter
     for pack in packs
       @addPack pack
 
-  addPack: (x) ->
+  addPack: (x, name=undefined) ->
     if x instanceof ArrayBuffer
       rawZipArchiveData = x
-      @packs.push new ArtPackArchive(rawZipArchiveData)
+      @packs.push new ArtPackArchive(rawZipArchiveData, name ? "(#{rawZipArchiveData.byteLength} raw bytes)")
       @emit 'loadedRaw', rawZipArchiveData
       @emit 'loadedAll'
     else if typeof x == 'string'
@@ -38,7 +38,7 @@ class ArtPacks extends EventEmitter
           # @packs[packIndex] stays null
 
         try
-          @packs[packIndex] = new ArtPackArchive(packData)
+          @packs[packIndex] = new ArtPackArchive(packData, url)
         catch e
           console.log "artpack failed to parse \##{packIndex} - #{url}: #{e}"
           @emit 'failedURL', url, e
@@ -90,6 +90,12 @@ class ArtPacks extends EventEmitter
     @packs = []
     @refresh()
 
+  getLoadedPacks: () ->
+    ret = []
+    for pack in @packs
+      ret.push pack if pack?
+    return ret
+
 # optional 'namespace:' prefix (as in namespace:foo), defaults to anything
 splitNamespace = (name) ->
   a = name.split ':'
@@ -100,7 +106,8 @@ splitNamespace = (name) ->
 
 
 class ArtPackArchive
-  constructor: (packData) ->
+  # Load pack given binary data + optional informative name
+  constructor: (packData, @name=undefined) ->
     if packData instanceof ArrayBuffer
       # convert browser ArrayBuffer to NodeJS Buffer so ZIP recognizes it as data
       packData = new Buffer(new Uint8Array(packData))
@@ -112,6 +119,8 @@ class ArtPackArchive
 
     @namespaces = @scanNamespaces()
     @namespaces.push 'foo'  # test
+
+  toString: () -> @name ? 'ArtPack'  # TODO: get name from pack.txt
 
   # Get list of "namespaces" with a resourcepack
   # all of assets/<foo>

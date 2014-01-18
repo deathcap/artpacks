@@ -28,12 +28,15 @@
       }
     }
 
-    ArtPacks.prototype.addPack = function(x) {
+    ArtPacks.prototype.addPack = function(x, name) {
       var pack, packIndex, rawZipArchiveData, url,
         _this = this;
+      if (name == null) {
+        name = void 0;
+      }
       if (x instanceof ArrayBuffer) {
         rawZipArchiveData = x;
-        this.packs.push(new ArtPackArchive(rawZipArchiveData));
+        this.packs.push(new ArtPackArchive(rawZipArchiveData, name != null ? name : "(" + rawZipArchiveData.byteLength + " raw bytes)"));
         this.emit('loadedRaw', rawZipArchiveData);
         return this.emit('loadedAll');
       } else if (typeof x === 'string') {
@@ -54,7 +57,7 @@
             return;
           }
           try {
-            _this.packs[packIndex] = new ArtPackArchive(packData);
+            _this.packs[packIndex] = new ArtPackArchive(packData, url);
           } catch (_error) {
             e = _error;
             console.log("artpack failed to parse \#" + packIndex + " - " + url + ": " + e);
@@ -128,6 +131,19 @@
       return this.refresh();
     };
 
+    ArtPacks.prototype.getLoadedPacks = function() {
+      var pack, ret, _i, _len, _ref;
+      ret = [];
+      _ref = this.packs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pack = _ref[_i];
+        if (pack != null) {
+          ret.push(pack);
+        }
+      }
+      return ret;
+    };
+
     return ArtPacks;
 
   })(EventEmitter);
@@ -145,8 +161,9 @@
   };
 
   ArtPackArchive = (function() {
-    function ArtPackArchive(packData) {
+    function ArtPackArchive(packData, name) {
       var _this = this;
+      this.name = name != null ? name : void 0;
       if (packData instanceof ArrayBuffer) {
         packData = new Buffer(new Uint8Array(packData));
       }
@@ -158,6 +175,11 @@
       this.namespaces = this.scanNamespaces();
       this.namespaces.push('foo');
     }
+
+    ArtPackArchive.prototype.toString = function() {
+      var _ref;
+      return (_ref = this.name) != null ? _ref : 'ArtPack';
+    };
 
     ArtPackArchive.prototype.scanNamespaces = function() {
       var namespaces, parts, zipEntryName, _i, _len, _ref;
