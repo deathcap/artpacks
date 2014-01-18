@@ -13,7 +13,7 @@
   });
 
   aps.on('loadedAll', function(packs) {
-    var audio, img, name, url, _i, _j, _len, _len1, _ref, _ref1, _results;
+    var audio, dragleave, dragover, drop, img, name, url, _i, _j, _len, _len1, _ref, _ref1;
     console.log(aps);
     _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -31,7 +31,6 @@
       document.body.appendChild(document.createElement('br'));
     }
     _ref1 = ['liquid/splash'];
-    _results = [];
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       name = _ref1[_j];
       document.body.appendChild(document.createTextNode('sound: ' + name + ' = '));
@@ -46,9 +45,25 @@
         audio.title = name;
         document.body.appendChild(audio);
       }
-      _results.push(document.body.appendChild(document.createElement('br')));
+      document.body.appendChild(document.createElement('br'));
     }
-    return _results;
+    dragover = function() {
+      return document.body.style.border = '5px dashed black';
+    };
+    dragleave = function() {
+      return document.body.style.border = '';
+    };
+    drop = function(ev) {
+      var files;
+      ev.stopPropagation();
+      ev.preventDefault();
+      files = ev.target.files || ev.dataTransfer.files;
+      console.log(files);
+      return window.alert(files);
+    };
+    document.body.addEventListener('dragover', dragover, false);
+    document.body.addEventListener('dragleave', dragleave, false);
+    return document.body.addEventListener('drop', drop, false);
   });
 
 }).call(this);

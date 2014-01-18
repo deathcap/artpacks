@@ -56,3 +56,18 @@ aps.on 'loadedAll', (packs) ->
 
 
     document.body.appendChild document.createElement 'br'
+
+  dragover = () -> document.body.style.border = '5px dashed black'
+  dragleave = () -> document.body.style.border = ''
+  drop = (ev) ->
+    ev.stopPropagation()
+    ev.preventDefault()
+
+    files = ev.target.files || ev.dataTransfer.files
+    console.log files
+    window.alert files
+
+  document.body.addEventListener 'dragover', dragover, false
+  document.body.addEventListener 'dragleave', dragleave, false
+  document.body.addEventListener 'drop', drop, false
+
