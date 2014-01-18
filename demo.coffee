@@ -65,11 +65,45 @@ showSounds = (aps) ->
     container.appendChild document.createElement 'br'
 
 
+showControls = () ->
+  input = document.createElement 'input'
+  input.setAttribute 'id', 'input'
+  container.appendChild input
+
+  img = document.createElement 'img'
+  img.setAttribute 'id', 'outputImg'
+  img.style.visibility = 'hidden'
+  container.appendChild img
+
+  audio = document.createElement 'audio'
+  audio.setAttribute 'id', 'outputAudio'
+  audio.controls = true
+  audio.style.visibility = 'hidden'
+  container.appendChild audio
+
+  document.body.addEventListener 'keyup', (ev) ->
+    url = aps.getTexture(input.value)
+    console.log "lookup #{input.value} = #{url}"
+    if url?
+      img.src = url
+      img.style.visibility = ''
+    else
+      img.style.visibility = 'hidden'
+      # maybe it is a sound? (note: different namespaces, obviously)
+      url = aps.getSound(input.value)
+      if url?
+        audio.src = url
+        audio.style.visibility = ''
+      else
+        audio.style.visibility = 'hidden'
+
+
 aps.on 'loadedAll', (packs) ->
   console.log(aps)
   container.removeChild(container.firstChild) while container.firstChild
   showTextures(aps)
   showSounds(aps)
+  showControls()
 
 
 dragover = (ev) ->
