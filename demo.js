@@ -26,7 +26,7 @@
 
   showTextures = function(aps) {
     var img, name, url, _i, _len, _ref, _results;
-    _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
+    _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'misc/shadow', 'minecraft:dirt', 'invalid'];
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       name = _ref[_i];
@@ -89,20 +89,25 @@
     return container.style.border = '5px dotted black';
   };
 
-  drop = function(ev) {
+  drop = function(mouseEvent) {
     var file, files, reader, _i, _len, _results;
-    dragleave(ev);
-    files = ev.target.files || ev.dataTransfer.files;
+    dragleave(mouseEvent);
+    files = mouseEvent.target.files || mouseEvent.dataTransfer.files;
     console.log('Dropped', files);
     _results = [];
     for (_i = 0, _len = files.length; _i < _len; _i++) {
       file = files[_i];
       console.log('Reading dropped', file);
       reader = new FileReader();
-      reader.addEventListener('load', function(e2) {
+      reader.addEventListener('load', function(readEvent) {
         var arrayBuffer;
-        arrayBuffer = e2.currentTarget.result;
-        aps.clear();
+        if (readEvent.total !== readEvent.loaded) {
+          return;
+        }
+        arrayBuffer = readEvent.currentTarget.result;
+        if (!mouseEvent.shiftKey) {
+          aps.clear();
+        }
         return aps.addPack(arrayBuffer);
       });
       _results.push(reader.readAsArrayBuffer(file));

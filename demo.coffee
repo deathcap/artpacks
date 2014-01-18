@@ -22,9 +22,9 @@ showTextures = (aps) ->
     'blocks/dirt',  # longhand block
     'i/stick',      # item shorthand, any namespace
     'items/stick',  # longhand item
-    #'misc/shadow', # other texture type
+    'misc/shadow', # other texture type
     'minecraft:dirt',   # explicit namespace, block
-    'somethingelse:dirt',   # non-existent namespace
+    #'somethingelse:dirt',   # non-existent namespace
     'invalid'               # non-existent block
     ]
 
@@ -82,18 +82,23 @@ dragleave = (ev) ->
   ev.preventDefault()
   container.style.border = '5px dotted black'
 
-drop = (ev) ->
-  dragleave(ev)
+drop = (mouseEvent) ->
+  dragleave(mouseEvent)
 
-  files = ev.target.files || ev.dataTransfer.files
+  files = mouseEvent.target.files || mouseEvent.dataTransfer.files
   console.log 'Dropped',files
   for file in files
     console.log 'Reading dropped',file
     reader = new FileReader()
-    reader.addEventListener 'load', (e2) ->
-      arrayBuffer = e2.currentTarget.result
+    reader.addEventListener 'load', (readEvent) ->
+      return if readEvent.total != readEvent.loaded # TODO: progress bar
 
-      aps.clear()  # start over
+      arrayBuffer = readEvent.currentTarget.result
+
+      if not mouseEvent.shiftKey
+        # start over, replacing all current packs - unless shift is held down (then add to)
+        aps.clear()
+
       aps.addPack arrayBuffer
 
     reader.readAsArrayBuffer(file)
