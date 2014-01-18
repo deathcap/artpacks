@@ -13,45 +13,51 @@
   });
 
   aps.on('loadedAll', function(packs) {
-    var audio, dragleave, dragover, drop, img, name, url, _i, _j, _len, _len1, _ref, _ref1;
+    var audio, container, dragleave, dragover, drop, img, name, url, _i, _j, _len, _len1, _ref, _ref1;
+    container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.height = '90%';
+    container.style.width = '90%';
+    container.style.border = '5px dotted black';
+    document.body.appendChild(container);
     console.log(aps);
     _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       name = _ref[_i];
-      document.body.appendChild(document.createTextNode(name + ' = '));
+      container.appendChild(document.createTextNode(name + ' = '));
       url = aps.getTexture(name);
       if (url == null) {
-        document.body.appendChild(document.createTextNode('(not found)'));
+        container.appendChild(document.createTextNode('(not found)'));
       } else {
         img = document.createElement('img');
         img.src = url;
         img.title = name;
-        document.body.appendChild(img);
+        container.appendChild(img);
       }
-      document.body.appendChild(document.createElement('br'));
+      container.appendChild(document.createElement('br'));
     }
     _ref1 = ['liquid/splash'];
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       name = _ref1[_j];
-      document.body.appendChild(document.createTextNode('sound: ' + name + ' = '));
+      container.appendChild(document.createTextNode('sound: ' + name + ' = '));
       url = aps.getSound(name);
       if (url == null) {
-        document.body.appendChild(document.createTextNode('(not found)'));
+        container.appendChild(document.createTextNode('(not found)'));
       } else {
         console.log(url);
         audio = document.createElement('audio');
         audio.src = url;
         audio.controls = true;
         audio.title = name;
-        document.body.appendChild(audio);
+        container.appendChild(audio);
       }
-      document.body.appendChild(document.createElement('br'));
+      container.appendChild(document.createElement('br'));
     }
     dragover = function() {
-      return document.body.style.border = '5px dashed black';
+      return container.style.border = '5px dashed black';
     };
     dragleave = function() {
-      return document.body.style.border = '';
+      return container.style.border = '5px dotted black';
     };
     drop = function(ev) {
       var files;
@@ -61,9 +67,9 @@
       console.log(files);
       return window.alert(files);
     };
-    document.body.addEventListener('dragover', dragover, false);
-    document.body.addEventListener('dragleave', dragleave, false);
-    return document.body.addEventListener('drop', drop, false);
+    container.addEventListener('dragover', dragover, false);
+    container.addEventListener('dragleave', dragleave, false);
+    return container.addEventListener('drop', drop, false);
   });
 
 }).call(this);

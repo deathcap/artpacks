@@ -10,6 +10,14 @@ aps.on 'loadedURL', (url) ->
   console.log 'Loaded ',url
 
 aps.on 'loadedAll', (packs) ->
+
+  container = document.createElement 'div'
+  container.style.position = 'absolute'
+  container.style.height = '90%'
+  container.style.width = '90%'
+  container.style.border = '5px dotted black'
+  document.body.appendChild(container)
+
   console.log(aps)
   for name in [
     'dirt',         # block, any namespace
@@ -22,28 +30,28 @@ aps.on 'loadedAll', (packs) ->
     'invalid'               # non-existent block
     ]
 
-    document.body.appendChild document.createTextNode name + ' = '
+    container.appendChild document.createTextNode name + ' = '
 
     url = aps.getTexture(name)
     if not url?
-      document.body.appendChild document.createTextNode '(not found)'
+      container.appendChild document.createTextNode '(not found)'
     else
       img = document.createElement 'img'
       img.src = url
       img.title = name
 
-      document.body.appendChild img
+      container.appendChild img
 
       #URL.revokeObjectURL(url) # TODO?
 
-    document.body.appendChild document.createElement 'br'
+    container.appendChild document.createElement 'br'
 
   for name in ['liquid/splash']
-    document.body.appendChild document.createTextNode 'sound: ' + name + ' = '
+    container.appendChild document.createTextNode 'sound: ' + name + ' = '
     url = aps.getSound(name)
 
     if not url?
-      document.body.appendChild document.createTextNode '(not found)'
+      container.appendChild document.createTextNode '(not found)'
     else
       console.log url
 
@@ -52,13 +60,13 @@ aps.on 'loadedAll', (packs) ->
       audio.controls = true
       audio.title = name
 
-      document.body.appendChild audio
+      container.appendChild audio
 
 
-    document.body.appendChild document.createElement 'br'
+    container.appendChild document.createElement 'br'
 
-  dragover = () -> document.body.style.border = '5px dashed black'
-  dragleave = () -> document.body.style.border = ''
+  dragover = () -> container.style.border = '5px dashed black'
+  dragleave = () -> container.style.border = '5px dotted black'
   drop = (ev) ->
     ev.stopPropagation()
     ev.preventDefault()
@@ -67,7 +75,7 @@ aps.on 'loadedAll', (packs) ->
     console.log files
     window.alert files
 
-  document.body.addEventListener 'dragover', dragover, false
-  document.body.addEventListener 'dragleave', dragleave, false
-  document.body.addEventListener 'drop', drop, false
+  container.addEventListener 'dragover', dragover, false
+  container.addEventListener 'dragleave', dragleave, false
+  container.addEventListener 'drop', drop, false
 
