@@ -77,6 +77,10 @@ class ArtPacks extends EventEmitter
 
     return undefined
 
+  clear: () ->
+    for url in @blobURLs
+      URL.revokeObjectURL(url)
+    @blobURLs = []
 
 # optional 'namespace:' prefix (as in namespace:foo), defaults to anything
 splitNamespace = (name) ->

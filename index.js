@@ -111,6 +111,16 @@
       return void 0;
     };
 
+    ArtPacks.prototype.clear = function() {
+      var url, _i, _len, _ref;
+      _ref = this.blobURLs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        url = _ref[_i];
+        URL.revokeObjectURL(url);
+      }
+      return this.blobURLs = [];
+    };
+
     return ArtPacks;
 
   })(EventEmitter);
