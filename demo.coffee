@@ -5,20 +5,18 @@ createArtPacks = require './'
 #urls = ['test2.zip', 'test.zip']
 urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip', 'invalid.zip', 'README.md']
 
+container = document.createElement 'div'
+container.style.position = 'absolute'
+container.style.height = '90%'
+container.style.width = '90%'
+container.style.border = '5px dotted black'
+document.body.appendChild(container)
+
 aps = createArtPacks urls
 aps.on 'loadedURL', (url) ->
   console.log 'Loaded ',url
 
-aps.on 'loadedAll', (packs) ->
-
-  container = document.createElement 'div'
-  container.style.position = 'absolute'
-  container.style.height = '90%'
-  container.style.width = '90%'
-  container.style.border = '5px dotted black'
-  document.body.appendChild(container)
-
-  console.log(aps)
+showTextures = (aps) ->
   for name in [
     'dirt',         # block, any namespace
     'blocks/dirt',  # longhand block
@@ -46,6 +44,7 @@ aps.on 'loadedAll', (packs) ->
 
     container.appendChild document.createElement 'br'
 
+showSounds = (aps) ->
   for name in ['liquid/splash']
     container.appendChild document.createTextNode 'sound: ' + name + ' = '
     url = aps.getSound(name)
@@ -65,24 +64,43 @@ aps.on 'loadedAll', (packs) ->
 
     container.appendChild document.createElement 'br'
 
-  dragover = (ev) ->
-    ev.stopPropagation()
-    ev.preventDefault()
-    container.style.border = '5px dashed black'
 
-  dragleave = (ev) ->
-    ev.stopPropagation()
-    ev.preventDefault()
-    container.style.border = '5px dotted black'
+aps.on 'loadedAll', (packs) ->
+  console.log(aps)
+  container.removeChild(container.firstChild) while container.firstChild
+  showTextures(aps)
+  showSounds(aps)
 
-  drop = (ev) ->
-    dragleave(ev)
 
-    files = ev.target.files || ev.dataTransfer.files
-    console.log files
-    window.alert files
+dragover = (ev) ->
+  ev.stopPropagation()
+  ev.preventDefault()
+  container.style.border = '5px dashed black'
 
-  container.addEventListener 'dragover', dragover, false
-  container.addEventListener 'dragleave', dragleave, false
-  container.addEventListener 'drop', drop, false
+dragleave = (ev) ->
+  ev.stopPropagation()
+  ev.preventDefault()
+  container.style.border = '5px dotted black'
+
+drop = (ev) ->
+  dragleave(ev)
+
+  files = ev.target.files || ev.dataTransfer.files
+  console.log 'Dropped',files
+  for file in files
+    console.log 'Reading dropped',file
+    reader = new FileReader()
+    reader.addEventListener 'load', (e2) ->
+      arrayBuffer = e2.currentTarget.result
+
+      aps.clear()  # start over
+      aps.addPack arrayBuffer
+
+    reader.readAsArrayBuffer(file)
+
+container.addEventListener 'dragover', dragover, false
+container.addEventListener 'dragleave', dragleave, false
+container.addEventListener 'drop', drop, false
+
+
 
