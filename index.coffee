@@ -9,6 +9,7 @@ class ArtPacks extends EventEmitter
   constructor: (packs) ->
     @packs = []
     @pending = {}
+    @blobURLs = {}
 
     for pack in packs
       @addPack pack
@@ -51,10 +52,24 @@ class ArtPacks extends EventEmitter
       @emit 'loadedPack', pack
       @packs.push pack  # assumed to be ArtPackArchive
 
-  getTexture: (name) -> @getArt name, 'textures'
-  getSound: (name) -> @getArt name, 'sounds'
+  getTexture: (name) -> @getURL name, 'textures'
+  getSound: (name) -> @getURL name, 'sounds'
 
-  getArt: (name, type) ->
+  getURL: (name, type) ->
+    # already have URL?
+    url = @blobURLs[type + ' ' + name]
+    return url if url?
+
+    # get a blob
+    blob = @getBlob(name, type)
+    return undefined if not blob?
+
+    # create URL and return
+    url = URL.createObjectURL(blob)
+    @blobURLs[type + ' ' + name] = url
+    return url
+
+  getBlob: (name, type) ->
     for pack in @packs    # search packs in order
       continue if !pack
       blob = pack.getBlob(name, type)

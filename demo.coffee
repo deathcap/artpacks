@@ -24,12 +24,10 @@ aps.on 'loadedAll', (packs) ->
 
     document.body.appendChild document.createTextNode name + ' = '
 
-    blob = aps.getTexture(name)
-    if not blob?
+    url = aps.getTexture(name)
+    if not url?
       document.body.appendChild document.createTextNode '(not found)'
     else
-      url = URL.createObjectURL(blob)
-
       img = document.createElement 'img'
       img.src = url
       img.title = name
@@ -42,12 +40,11 @@ aps.on 'loadedAll', (packs) ->
 
   for name in ['liquid/splash']
     document.body.appendChild document.createTextNode 'sound: ' + name + ' = '
-    blob = aps.getSound(name)
+    url = aps.getSound(name)
 
-    if not blob?
+    if not url?
       document.body.appendChild document.createTextNode '(not found)'
     else
-      url = URL.createObjectURL(blob)
       console.log url
 
       audio = document.createElement 'audio'
@@ -56,8 +53,6 @@ aps.on 'loadedAll', (packs) ->
       audio.title = name
 
       document.body.appendChild audio
-
-      #URL.revokeObjectURL(url) # TODO?
 
 
     document.body.appendChild document.createElement 'br'

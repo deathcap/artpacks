@@ -13,17 +13,16 @@
   });
 
   aps.on('loadedAll', function(packs) {
-    var audio, blob, img, name, url, _i, _j, _len, _len1, _ref, _ref1, _results;
+    var audio, img, name, url, _i, _j, _len, _len1, _ref, _ref1, _results;
     console.log(aps);
     _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       name = _ref[_i];
       document.body.appendChild(document.createTextNode(name + ' = '));
-      blob = aps.getTexture(name);
-      if (blob == null) {
+      url = aps.getTexture(name);
+      if (url == null) {
         document.body.appendChild(document.createTextNode('(not found)'));
       } else {
-        url = URL.createObjectURL(blob);
         img = document.createElement('img');
         img.src = url;
         img.title = name;
@@ -36,11 +35,10 @@
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       name = _ref1[_j];
       document.body.appendChild(document.createTextNode('sound: ' + name + ' = '));
-      blob = aps.getSound(name);
-      if (blob == null) {
+      url = aps.getSound(name);
+      if (url == null) {
         document.body.appendChild(document.createTextNode('(not found)'));
       } else {
-        url = URL.createObjectURL(blob);
         console.log(url);
         audio = document.createElement('audio');
         audio.src = url;

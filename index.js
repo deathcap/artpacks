@@ -21,6 +21,7 @@
       var pack, _i, _len;
       this.packs = [];
       this.pending = {};
+      this.blobURLs = {};
       for (_i = 0, _len = packs.length; _i < _len; _i++) {
         pack = packs[_i];
         this.addPack(pack);
@@ -72,14 +73,29 @@
     };
 
     ArtPacks.prototype.getTexture = function(name) {
-      return this.getArt(name, 'textures');
+      return this.getURL(name, 'textures');
     };
 
     ArtPacks.prototype.getSound = function(name) {
-      return this.getArt(name, 'sounds');
+      return this.getURL(name, 'sounds');
     };
 
-    ArtPacks.prototype.getArt = function(name, type) {
+    ArtPacks.prototype.getURL = function(name, type) {
+      var blob, url;
+      url = this.blobURLs[type + ' ' + name];
+      if (url != null) {
+        return url;
+      }
+      blob = this.getBlob(name, type);
+      if (blob == null) {
+        return void 0;
+      }
+      url = URL.createObjectURL(blob);
+      this.blobURLs[type + ' ' + name] = url;
+      return url;
+    };
+
+    ArtPacks.prototype.getBlob = function(name, type) {
       var blob, pack, _i, _len, _ref;
       _ref = this.packs;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
