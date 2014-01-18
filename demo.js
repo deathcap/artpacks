@@ -73,6 +73,7 @@
     input = document.createElement('input');
     input.setAttribute('id', 'input');
     container.appendChild(input);
+    container.appendChild(document.createTextNode(' = '));
     img = document.createElement('img');
     img.setAttribute('id', 'outputImg');
     img.style.visibility = 'hidden';
@@ -114,6 +115,8 @@
       s += "" + p + " ";
     }
     container.appendChild(document.createTextNode(s));
+    container.appendChild(document.createElement('br'));
+    container.appendChild(document.createTextNode('Drop a pack here to load (hold shift to append), or enter a name in text box below to lookup:'));
     container.appendChild(document.createElement('br'));
     return container.appendChild(document.createElement('br'));
   };

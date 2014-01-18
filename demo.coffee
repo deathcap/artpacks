@@ -16,6 +16,8 @@ packs = createArtPacks urls
 packs.on 'loadedURL', (url) ->
   console.log 'Loaded ',url
 
+# show some sample textures
+# TODO: show _all_? In a grid? might be handy
 showTextures = () ->
   for name in [
     'dirt',         # block, any namespace
@@ -70,6 +72,8 @@ showControls = () ->
   input.setAttribute 'id', 'input'
   container.appendChild input
 
+  container.appendChild document.createTextNode ' = '
+
   img = document.createElement 'img'
   img.setAttribute 'id', 'outputImg'
   img.style.visibility = 'hidden'
@@ -108,6 +112,8 @@ showInfo = () ->
     s += "#{p} "
 
   container.appendChild document.createTextNode s
+  container.appendChild document.createElement 'br'
+  container.appendChild document.createTextNode 'Drop a pack here to load (hold shift to append), or enter a name in text box below to lookup:'
   container.appendChild document.createElement 'br'
   container.appendChild document.createElement 'br'
 
