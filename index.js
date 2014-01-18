@@ -22,6 +22,7 @@
       this.packs = [];
       this.pending = {};
       this.blobURLs = {};
+      this.setMaxListeners(0);
       for (_i = 0, _len = packs.length; _i < _len; _i++) {
         pack = packs[_i];
         this.addPack(pack);
@@ -64,6 +65,7 @@
             _this.emit('failedURL', url, e);
           }
           delete _this.pending[url];
+          console.log('artpacks loaded pack:', url);
           _this.emit('loadedURL', url);
           if (Object.keys(_this.pending).length === 0) {
             return _this.emit('loadedAll');
@@ -74,6 +76,31 @@
         this.emit('loadedPack', pack);
         this.emit('loadedAll');
         return this.packs.push(pack);
+      }
+    };
+
+    ArtPacks.prototype.getTextureImage = function(name, onload, onerror) {
+      var img, load,
+        _this = this;
+      img = new Image();
+      load = function() {
+        var url;
+        url = _this.getTexture(name);
+        if (url == null) {
+          return onerror("no such texture in artpacks: " + name, img);
+        }
+        img.src = url;
+        img.onload = function() {
+          return onload(img);
+        };
+        return img.onerror = function(err) {
+          return onerror(err, img);
+        };
+      };
+      if (this.isQuiescent()) {
+        return load();
+      } else {
+        return this.on('loadedAll', load);
       }
     };
 
@@ -142,6 +169,10 @@
         }
       }
       return ret;
+    };
+
+    ArtPacks.prototype.isQuiescent = function() {
+      return this.getLoadedPacks().length > 0 && Object.keys(this.pending).length === 0;
     };
 
     return ArtPacks;
@@ -218,7 +249,7 @@
         }
         _ref1 = splitNamespace(partname), namespace = _ref1[0], basename = _ref1[1];
         pathRP = "assets/" + namespace + "/textures/" + category + "/" + basename + ".png";
-        console.log(fullname, [category, namespace, basename]);
+        console.log('artpacks texture:', fullname, [category, namespace, basename]);
         return pathRP;
       },
       sounds: function(fullname) {

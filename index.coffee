@@ -11,6 +11,8 @@ class ArtPacks extends EventEmitter
     @pending = {}
     @blobURLs = {}
 
+    @setMaxListeners 0    # since each texture can @on 'loadedAll'.. it adds up
+
     for pack in packs
       @addPack pack
 
@@ -46,6 +48,7 @@ class ArtPacks extends EventEmitter
 
         delete @pending[url]
 
+        console.log 'artpacks loaded pack:',url
         @emit 'loadedURL', url
         @emit 'loadedAll' if Object.keys(@pending).length == 0
     else
@@ -53,6 +56,25 @@ class ArtPacks extends EventEmitter
       @emit 'loadedPack', pack
       @emit 'loadedAll'
       @packs.push pack  # assumed to be ArtPackArchive
+
+  getTextureImage: (name, onload, onerror) ->
+    img = new Image()
+
+    load = () =>
+      url = @getTexture name
+      if not url?
+        return onerror("no such texture in artpacks: #{name}", img)
+
+      img.src = url
+      img.onload = () ->
+        onload(img)
+      img.onerror = (err) ->
+        onerror(err, img)
+
+    if @isQuiescent()
+      load()
+    else
+      @on 'loadedAll', load
 
   getTexture: (name) -> @getURL name, 'textures'
   getSound: (name) -> @getURL name, 'sounds'
@@ -95,6 +117,9 @@ class ArtPacks extends EventEmitter
     for pack in @packs
       ret.push pack if pack?
     return ret
+
+  isQuiescent: () -> # have at least 1 pack loaded, and no more left to go
+    return @getLoadedPacks().length > 0 and Object.keys(@pending).length == 0
 
 # optional 'namespace:' prefix (as in namespace:foo), defaults to anything
 splitNamespace = (name) ->
@@ -148,7 +173,7 @@ class ArtPackArchive
       [namespace, basename] = splitNamespace partname
 
       pathRP = "assets/#{namespace}/textures/#{category}/#{basename}.png"
-      console.log fullname,[category,namespace,basename]
+      console.log 'artpacks texture:',fullname,[category,namespace,basename]
       
       return pathRP
 
