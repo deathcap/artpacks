@@ -28,7 +28,7 @@
     }
 
     ArtPacks.prototype.addPack = function(x) {
-      var pack, rawZipArchiveData, url,
+      var pack, packIndex, rawZipArchiveData, url,
         _this = this;
       if (x instanceof ArrayBuffer) {
         rawZipArchiveData = x;
@@ -37,9 +37,14 @@
       } else if (typeof x === 'string') {
         url = x;
         this.pending[url] = true;
+        packIndex = this.packs.length;
+        this.packs[packIndex] = null;
         this.emit('loadingURL', url);
         return binaryXHR(url, function(err, packData) {
-          _this.packs.push(new ArtPackArchive(packData));
+          if (_this.packs[packIndex] !== null) {
+            console.log("artpacks warning: index " + packIndex + " occupied, expected to be empty while loading " + url);
+          }
+          _this.packs[packIndex] = new ArtPackArchive(packData);
           delete _this.pending[url];
           _this.emit('loadedURL', url);
           if (Object.keys(_this.pending).length === 0) {
@@ -66,6 +71,9 @@
       _ref = this.packs;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
+        if (!pack) {
+          continue;
+        }
         blob = pack.getBlob(name, type);
         if (blob != null) {
           return blob;

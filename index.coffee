@@ -21,9 +21,14 @@ class ArtPacks extends EventEmitter
     else if typeof x == 'string'
       url = x
       @pending[url] = true
+      packIndex = @packs.length
+      @packs[packIndex] = null # save place while loading
       @emit 'loadingURL', url
       binaryXHR url, (err, packData) =>
-        @packs.push new ArtPackArchive(packData)
+        if @packs[packIndex] != null
+          console.log "artpacks warning: index #{packIndex} occupied, expected to be empty while loading #{url}"
+
+        @packs[packIndex] = new ArtPackArchive(packData)
         delete @pending[url]
 
         @emit 'loadedURL', url
@@ -38,6 +43,7 @@ class ArtPacks extends EventEmitter
 
   getArt: (name, type) ->
     for pack in @packs    # search packs in order
+      continue if !pack
       blob = pack.getBlob(name, type)
       return blob if blob?
 
