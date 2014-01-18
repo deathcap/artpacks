@@ -53,16 +53,19 @@
       }
       container.appendChild(document.createElement('br'));
     }
-    dragover = function() {
+    dragover = function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
       return container.style.border = '5px dashed black';
     };
-    dragleave = function() {
+    dragleave = function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
       return container.style.border = '5px dotted black';
     };
     drop = function(ev) {
       var files;
-      ev.stopPropagation();
-      ev.preventDefault();
+      dragleave(ev);
       files = ev.target.files || ev.dataTransfer.files;
       console.log(files);
       return window.alert(files);

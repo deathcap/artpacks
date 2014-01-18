@@ -65,11 +65,18 @@ aps.on 'loadedAll', (packs) ->
 
     container.appendChild document.createElement 'br'
 
-  dragover = () -> container.style.border = '5px dashed black'
-  dragleave = () -> container.style.border = '5px dotted black'
-  drop = (ev) ->
+  dragover = (ev) ->
     ev.stopPropagation()
     ev.preventDefault()
+    container.style.border = '5px dashed black'
+
+  dragleave = (ev) ->
+    ev.stopPropagation()
+    ev.preventDefault()
+    container.style.border = '5px dotted black'
+
+  drop = (ev) ->
+    dragleave(ev)
 
     files = ev.target.files || ev.dataTransfer.files
     console.log files
