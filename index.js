@@ -21,47 +21,127 @@
       var pack, _i, _len;
       this.packs = [];
       this.pending = {};
+      this.blobURLs = {};
       for (_i = 0, _len = packs.length; _i < _len; _i++) {
         pack = packs[_i];
         this.addPack(pack);
       }
     }
 
-    ArtPacks.prototype.addPack = function(pack) {
-      var _this = this;
-      if (pack instanceof ArrayBuffer) {
-        return this.packs.push(new ArtPackArchive(pack));
-      } else if (typeof pack === 'string') {
-        this.pending[pack] = true;
-        return binaryXHR(pack, function(err, packData) {
-          _this.packs.push(new ArtPackArchive(packData));
-          delete _this.pending[pack];
-          return _this.emit('loaded', _this.packs);
+    ArtPacks.prototype.addPack = function(x, name) {
+      var pack, packIndex, rawZipArchiveData, url,
+        _this = this;
+      if (name == null) {
+        name = void 0;
+      }
+      if (x instanceof ArrayBuffer) {
+        rawZipArchiveData = x;
+        this.packs.push(new ArtPackArchive(rawZipArchiveData, name != null ? name : "(" + rawZipArchiveData.byteLength + " raw bytes)"));
+        this.emit('loadedRaw', rawZipArchiveData);
+        return this.emit('loadedAll');
+      } else if (typeof x === 'string') {
+        url = x;
+        this.pending[url] = true;
+        packIndex = this.packs.length;
+        this.packs[packIndex] = null;
+        this.emit('loadingURL', url);
+        return binaryXHR(url, function(err, packData) {
+          var e;
+          if (_this.packs[packIndex] !== null) {
+            console.log("artpacks warning: index " + packIndex + " occupied, expected to be empty while loading " + url);
+          }
+          if (err || !packData) {
+            console.log("artpack failed to load \#" + packIndex + " - " + url + ": " + err);
+            _this.emit('failedURL', url, err);
+            delete _this.pending[url];
+            return;
+          }
+          try {
+            _this.packs[packIndex] = new ArtPackArchive(packData, url);
+          } catch (_error) {
+            e = _error;
+            console.log("artpack failed to parse \#" + packIndex + " - " + url + ": " + e);
+            _this.emit('failedURL', url, e);
+          }
+          delete _this.pending[url];
+          _this.emit('loadedURL', url);
+          if (Object.keys(_this.pending).length === 0) {
+            return _this.emit('loadedAll');
+          }
         });
       } else {
+        pack = x;
+        this.emit('loadedPack', pack);
+        this.emit('loadedAll');
         return this.packs.push(pack);
       }
     };
 
     ArtPacks.prototype.getTexture = function(name) {
-      return this.getArt(name, 'textures');
+      return this.getURL(name, 'textures');
     };
 
     ArtPacks.prototype.getSound = function(name) {
-      return this.getArt(name, 'sounds');
+      return this.getURL(name, 'sounds');
     };
 
-    ArtPacks.prototype.getArt = function(name, type) {
+    ArtPacks.prototype.getURL = function(name, type) {
+      var blob, url;
+      url = this.blobURLs[type + ' ' + name];
+      if (url != null) {
+        return url;
+      }
+      blob = this.getBlob(name, type);
+      if (blob == null) {
+        return void 0;
+      }
+      url = URL.createObjectURL(blob);
+      this.blobURLs[type + ' ' + name] = url;
+      return url;
+    };
+
+    ArtPacks.prototype.getBlob = function(name, type) {
       var blob, pack, _i, _len, _ref;
       _ref = this.packs;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
+        if (!pack) {
+          continue;
+        }
         blob = pack.getBlob(name, type);
         if (blob != null) {
           return blob;
         }
       }
       return void 0;
+    };
+
+    ArtPacks.prototype.refresh = function() {
+      var url, _i, _len, _ref;
+      _ref = this.blobURLs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        url = _ref[_i];
+        URL.revokeObjectURL(url);
+      }
+      return this.blobURLs = [];
+    };
+
+    ArtPacks.prototype.clear = function() {
+      this.packs = [];
+      return this.refresh();
+    };
+
+    ArtPacks.prototype.getLoadedPacks = function() {
+      var pack, ret, _i, _len, _ref;
+      ret = [];
+      _ref = this.packs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pack = _ref[_i];
+        if (pack != null) {
+          ret.push(pack);
+        }
+      }
+      return ret;
     };
 
     return ArtPacks;
@@ -81,8 +161,9 @@
   };
 
   ArtPackArchive = (function() {
-    function ArtPackArchive(packData) {
+    function ArtPackArchive(packData, name) {
       var _this = this;
+      this.name = name != null ? name : void 0;
       if (packData instanceof ArrayBuffer) {
         packData = new Buffer(new Uint8Array(packData));
       }
@@ -94,6 +175,11 @@
       this.namespaces = this.scanNamespaces();
       this.namespaces.push('foo');
     }
+
+    ArtPackArchive.prototype.toString = function() {
+      var _ref;
+      return (_ref = this.name) != null ? _ref : 'ArtPack';
+    };
 
     ArtPackArchive.prototype.scanNamespaces = function() {
       var namespaces, parts, zipEntryName, _i, _len, _ref;
