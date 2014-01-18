@@ -6,9 +6,10 @@ createArtPacks = require './'
 urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip']
 
 aps = createArtPacks urls
-aps.on 'loaded', (packs) ->
-  return if packs.length != urls.length  # not all loaded yet
+aps.on 'loadedURL', (url) ->
+  console.log 'Loaded ',url
 
+aps.on 'loadedAll', (packs) ->
   console.log(aps)
   for name in [
     'dirt',         # block, any namespace

@@ -27,18 +27,28 @@
       }
     }
 
-    ArtPacks.prototype.addPack = function(pack) {
-      var _this = this;
-      if (pack instanceof ArrayBuffer) {
-        return this.packs.push(new ArtPackArchive(pack));
-      } else if (typeof pack === 'string') {
-        this.pending[pack] = true;
-        return binaryXHR(pack, function(err, packData) {
+    ArtPacks.prototype.addPack = function(x) {
+      var pack, rawZipArchiveData, url,
+        _this = this;
+      if (x instanceof ArrayBuffer) {
+        rawZipArchiveData = x;
+        this.packs.push(new ArtPackArchive(rawZipArchiveData));
+        return this.emit('loadedRaw', rawZipArchiveData);
+      } else if (typeof x === 'string') {
+        url = x;
+        this.pending[url] = true;
+        this.emit('loadingURL', url);
+        return binaryXHR(url, function(err, packData) {
           _this.packs.push(new ArtPackArchive(packData));
-          delete _this.pending[pack];
-          return _this.emit('loaded', _this.packs);
+          delete _this.pending[url];
+          _this.emit('loadedURL', url);
+          if (Object.keys(_this.pending).length === 0) {
+            return _this.emit('loadedAll');
+          }
         });
       } else {
+        pack = x;
+        this.emit('loadedPack', pack);
         return this.packs.push(pack);
       }
     };

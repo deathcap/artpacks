@@ -14,8 +14,8 @@ Cascading texture/sounds artwork pack loader
     blob = artpacks.getTexture('namespace:name');
     blob = artpacks.getSound('name');
 
-The given URLs are loaded using binary XHR. A `loaded` event is emitted in case
-you want to listen for the URLs are loaded before attempting to get the art.
+The given URLs are loaded using binary XHR. A `loadedAll` event is emitted in case
+you want to do something after all of the packs are loaded.
 
 `getTexture` and `getSound` both return `Blob` objects per the W3C [File API](http://www.w3.org/TR/FileAPI/).
 You can use `URL.createObjectURL(blob)` in the browser to get a `blob:` URL usable for `img` or `audio` src, etc.

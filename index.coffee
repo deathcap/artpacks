@@ -13,16 +13,24 @@ class ArtPacks extends EventEmitter
     for pack in packs
       @addPack pack
 
-  addPack: (pack) ->
-    if pack instanceof ArrayBuffer # raw zip archive data
-      @packs.push new ArtPackArchive(pack)
-    else if typeof pack == 'string' # URL to load
-      @pending[pack] = true
-      binaryXHR pack, (err, packData) =>
+  addPack: (x) ->
+    if x instanceof ArrayBuffer
+      rawZipArchiveData = x
+      @packs.push new ArtPackArchive(rawZipArchiveData)
+      @emit 'loadedRaw', rawZipArchiveData
+    else if typeof x == 'string'
+      url = x
+      @pending[url] = true
+      @emit 'loadingURL', url
+      binaryXHR url, (err, packData) =>
         @packs.push new ArtPackArchive(packData)
-        delete @pending[pack]
-        @emit 'loaded', @packs
+        delete @pending[url]
+
+        @emit 'loadedURL', url
+        @emit 'loadedAll' if Object.keys(@pending).length == 0
     else
+      pack = x
+      @emit 'loadedPack', pack
       @packs.push pack  # assumed to be ArtPackArchive
 
   getTexture: (name) -> @getArt name, 'textures'

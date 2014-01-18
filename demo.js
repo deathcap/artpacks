@@ -8,11 +8,12 @@
 
   aps = createArtPacks(urls);
 
-  aps.on('loaded', function(packs) {
+  aps.on('loadedURL', function(url) {
+    return console.log('Loaded ', url);
+  });
+
+  aps.on('loadedAll', function(packs) {
     var audio, blob, img, name, url, _i, _j, _len, _len1, _ref, _ref1, _results;
-    if (packs.length !== urls.length) {
-      return;
-    }
     console.log(aps);
     _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'minecraft:dirt', 'somethingelse:dirt', 'invalid'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
