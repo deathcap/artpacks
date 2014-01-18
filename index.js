@@ -41,10 +41,23 @@
         this.packs[packIndex] = null;
         this.emit('loadingURL', url);
         return binaryXHR(url, function(err, packData) {
+          var e;
           if (_this.packs[packIndex] !== null) {
             console.log("artpacks warning: index " + packIndex + " occupied, expected to be empty while loading " + url);
           }
-          _this.packs[packIndex] = new ArtPackArchive(packData);
+          if (err || !packData) {
+            console.log("artpack failed to load \#" + packIndex + " - " + url + ": " + err);
+            _this.emit('failedURL', url, err);
+            delete _this.pending[url];
+            return;
+          }
+          try {
+            _this.packs[packIndex] = new ArtPackArchive(packData);
+          } catch (_error) {
+            e = _error;
+            console.log("artpack failed to parse \#" + packIndex + " - " + url + ": " + e);
+            _this.emit('failedURL', url, e);
+          }
           delete _this.pending[url];
           _this.emit('loadedURL', url);
           if (Object.keys(_this.pending).length === 0) {

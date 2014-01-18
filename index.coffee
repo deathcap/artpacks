@@ -28,7 +28,20 @@ class ArtPacks extends EventEmitter
         if @packs[packIndex] != null
           console.log "artpacks warning: index #{packIndex} occupied, expected to be empty while loading #{url}"
 
-        @packs[packIndex] = new ArtPackArchive(packData)
+        if err || !packData
+          console.log "artpack failed to load \##{packIndex} - #{url}: #{err}"
+          @emit 'failedURL', url, err
+          delete @pending[url]
+          return
+          # @packs[packIndex] stays null
+
+        try
+          @packs[packIndex] = new ArtPackArchive(packData)
+        catch e
+          console.log "artpack failed to parse \##{packIndex} - #{url}: #{e}"
+          @emit 'failedURL', url, e
+          # fallthrough
+
         delete @pending[url]
 
         @emit 'loadedURL', url

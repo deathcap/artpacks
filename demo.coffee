@@ -3,7 +3,7 @@ createArtPacks = require './'
 
 #urls = ['test2.zip', 'test.zip', 'testsnd.zip']
 #urls = ['test2.zip', 'test.zip']
-urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip']
+urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip', 'invalid.zip', 'README.md']
 
 aps = createArtPacks urls
 aps.on 'loadedURL', (url) ->
