@@ -34,7 +34,8 @@
       if (x instanceof ArrayBuffer) {
         rawZipArchiveData = x;
         this.packs.push(new ArtPackArchive(rawZipArchiveData));
-        return this.emit('loadedRaw', rawZipArchiveData);
+        this.emit('loadedRaw', rawZipArchiveData);
+        return this.emit('loadedAll');
       } else if (typeof x === 'string') {
         url = x;
         this.pending[url] = true;
@@ -68,6 +69,7 @@
       } else {
         pack = x;
         this.emit('loadedPack', pack);
+        this.emit('loadedAll');
         return this.packs.push(pack);
       }
     };
@@ -111,7 +113,7 @@
       return void 0;
     };
 
-    ArtPacks.prototype.clear = function() {
+    ArtPacks.prototype.refresh = function() {
       var url, _i, _len, _ref;
       _ref = this.blobURLs;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -119,6 +121,11 @@
         URL.revokeObjectURL(url);
       }
       return this.blobURLs = [];
+    };
+
+    ArtPacks.prototype.clear = function() {
+      this.packs = [];
+      return this.refresh();
     };
 
     return ArtPacks;

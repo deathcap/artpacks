@@ -19,6 +19,7 @@ class ArtPacks extends EventEmitter
       rawZipArchiveData = x
       @packs.push new ArtPackArchive(rawZipArchiveData)
       @emit 'loadedRaw', rawZipArchiveData
+      @emit 'loadedAll'
     else if typeof x == 'string'
       url = x
       @pending[url] = true
@@ -50,6 +51,7 @@ class ArtPacks extends EventEmitter
     else
       pack = x
       @emit 'loadedPack', pack
+      @emit 'loadedAll'
       @packs.push pack  # assumed to be ArtPackArchive
 
   getTexture: (name) -> @getURL name, 'textures'
@@ -77,10 +79,16 @@ class ArtPacks extends EventEmitter
 
     return undefined
 
-  clear: () ->
+  # revoke all URLs to reload from packs list
+  refresh: () ->
     for url in @blobURLs
       URL.revokeObjectURL(url)
     @blobURLs = []
+
+  # delete all loaded packs
+  clear: () ->
+    @packs = []
+    @refresh()
 
 # optional 'namespace:' prefix (as in namespace:foo), defaults to anything
 splitNamespace = (name) ->
