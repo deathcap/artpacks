@@ -13,8 +13,9 @@
     "textures"
   ],
   "dependencies": {
-    "zip": "git://github.com/deathcap/zip.git#355017855dbf117c53d0638a6ca6747baa03750f",
-    "binary-xhr": "git://github.com/deathcap/binary-xhr.git#90815ab71c1cfdad6c0f31a996a43dbdfeba957f"
+    "zip": "git://github.com/deathcap/zip.git#ca04adc16fee313467715c7cc3f0cfc597e63220",
+    "binary-xhr": "git://github.com/deathcap/binary-xhr.git#b38988d41197489e96c39a427b399325ddc558cf",
+    "native-buffer-browserify": ">=2.0.9"
   },
   "scripts": {
     "start": "beefy demo.js"
