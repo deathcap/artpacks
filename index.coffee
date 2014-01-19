@@ -135,8 +135,8 @@ class ArtPackArchive
   # Load pack given binary data + optional informative name
   constructor: (packData, @name=undefined) ->
     if packData instanceof ArrayBuffer
-      # convert browser ArrayBuffer to NodeJS Buffer so ZIP recognizes it as data
-      packData = new Buffer(new Uint8Array(packData))
+      # zip with bops uses Uint8Array data view
+      packData = new Uint8Array(packData)
     @zip = new ZIP.Reader(packData)
 
     @zipEntries = {}

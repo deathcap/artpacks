@@ -198,7 +198,7 @@
       var _this = this;
       this.name = name != null ? name : void 0;
       if (packData instanceof ArrayBuffer) {
-        packData = new Buffer(new Uint8Array(packData));
+        packData = new Uint8Array(packData);
       }
       this.zip = new ZIP.Reader(packData);
       this.zipEntries = {};
