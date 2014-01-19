@@ -14,7 +14,8 @@
   ],
   "dependencies": {
     "zip": "git://github.com/deathcap/zip.git#355017855dbf117c53d0638a6ca6747baa03750f",
-    "binary-xhr": "git://github.com/deathcap/binary-xhr.git#b38988d41197489e96c39a427b399325ddc558cf"
+    "binary-xhr": "git://github.com/deathcap/binary-xhr.git#b38988d41197489e96c39a427b399325ddc558cf",
+    "native-buffer-browserify": ">=2.0.9"
   },
   "scripts": {
     "start": "beefy demo.js"
