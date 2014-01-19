@@ -206,8 +206,19 @@ class ArtPackArchive
         #console.log zipEntry
         data = zipEntry.getData()
         #console.log "decompressed #{zipEntry.entryName} to #{data.length}"
+        if not (data instanceof ArrayBuffer)
+          # ugly workaround for Firefox, where native-buffer-browserify
+          # is using Buffer backed by Object instead of ArrayBuffer -
+          # but we always need to return an ArrayBuffer, and .toArrayBuffer
+          # is not available unless Buffer is backed by an ArrayBuffer :(
+          arrayBuffer = new Uint8Array(data.length)
+          for i in [0..data.length]
+            arrayBuffer[i] = data[i]
+        else
+          arrayBuffer = data
 
-        return data
+
+        return arrayBuffer
 
     return undefined # not found
 
