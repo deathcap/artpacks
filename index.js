@@ -267,7 +267,7 @@
     };
 
     ArtPackArchive.prototype.getArrayBuffer = function(name, type) {
-      var arrayBuffer, data, found, i, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _j, _len, _ref;
+      var found, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _len;
       pathRP = this.nameToPath[type](name);
       found = false;
       if (pathRP.indexOf('*') === -1) {
@@ -288,16 +288,7 @@
         tryPath = tryPaths[_i];
         zipEntry = this.zipEntries[tryPath];
         if (zipEntry != null) {
-          data = zipEntry.getData();
-          if (!(data instanceof ArrayBuffer)) {
-            arrayBuffer = new Uint8Array(data.length);
-            for (i = _j = 0, _ref = data.length; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
-              arrayBuffer[i] = data[i];
-            }
-          } else {
-            arrayBuffer = data;
-          }
-          return arrayBuffer;
+          return zipEntry.getData();
         }
       }
       return void 0;
