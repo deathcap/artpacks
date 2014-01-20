@@ -25,6 +25,10 @@ class ArtPacks extends EventEmitter
       @emit 'loadedAll'
     else if typeof x == 'string'
       url = x
+
+      if not XMLHttpRequest?
+        throw new Error "artpacks unsupported addPack url #{x} without XMLHttpRequest"
+
       @pending[url] = true
       packIndex = @packs.length
       @packs[packIndex] = null # save place while loading

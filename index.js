@@ -44,6 +44,9 @@
         return this.emit('loadedAll');
       } else if (typeof x === 'string') {
         url = x;
+        if (typeof XMLHttpRequest === "undefined" || XMLHttpRequest === null) {
+          throw new Error("artpacks unsupported addPack url " + x + " without XMLHttpRequest");
+        }
         this.pending[url] = true;
         packIndex = this.packs.length;
         this.packs[packIndex] = null;
