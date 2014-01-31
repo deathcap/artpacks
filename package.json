@@ -14,7 +14,7 @@
   ],
   "dependencies": {
     "zip": "git://github.com/deathcap/zip.git#ca04adc16fee313467715c7cc3f0cfc597e63220",
-    "binary-xhr": "git://github.com/deathcap/binary-xhr.git#b38988d41197489e96c39a427b399325ddc558cf",
+    "binary-xhr": "0.0.2",
     "native-buffer-browserify": ">=2.0.9"
   },
   "scripts": {
