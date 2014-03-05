@@ -26,6 +26,7 @@ showTextures = () ->
     'items/stick',  # longhand item
     'misc/shadow', # other texture type
     'minecraft:dirt',   # explicit namespace, block
+    'water_flow',   # animated
     #'somethingelse:dirt',   # non-existent namespace
     'invalid'               # non-existent block
     ]

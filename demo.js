@@ -26,7 +26,7 @@
 
   showTextures = function() {
     var img, name, url, _i, _len, _ref, _results;
-    _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'misc/shadow', 'minecraft:dirt', 'invalid'];
+    _ref = ['dirt', 'blocks/dirt', 'i/stick', 'items/stick', 'misc/shadow', 'minecraft:dirt', 'water_flow', 'invalid'];
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       name = _ref[_i];
