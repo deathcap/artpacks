@@ -5,6 +5,7 @@ fs = require 'fs'
 binaryXHR = require 'binary-xhr'
 EventEmitter = (require 'events').EventEmitter
 Buffer = (require 'native-buffer-browserify').Buffer # >=2.0.9 for fix https://github.com/feross/native-buffer-browserify/issues/16
+touchup = require 'touchup'
 
 class ArtPacks extends EventEmitter
   constructor: (packs) ->
@@ -72,7 +73,25 @@ class ArtPacks extends EventEmitter
 
       img.src = url
       img.onload = () ->
-        onload(img)
+        if img.height == img.width
+          onload(img)
+        else
+          # multi-frame texture strip, need to extract frame
+          # -- for now, only the first frame, determined from texture width
+          # (TODO: full animation support, see https://github.com/deathcap/artpacks/issues/7)
+          destW = destH = img.width
+
+          console.log 'extracting animation frame for',name
+          frameURL = touchup.crop img, 0, 0, img.width - destW, img.height - destH
+          frameImg = new Image()
+          frameImg.onload = () ->
+            console.log 'extracted animation frame',name,frameImg.width,frameImg.height,'from',img.width,img.height
+            onload(frameImg)
+          frameImg.onerror = (err) ->
+            onerror(err, frameImg)
+          frameImg.src = frameURL
+
+         
       img.onerror = (err) ->
         onerror(err, img)
 

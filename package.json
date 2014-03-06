@@ -15,7 +15,8 @@
   "dependencies": {
     "zip": "git://github.com/deathcap/zip.git#ca04adc16fee313467715c7cc3f0cfc597e63220",
     "binary-xhr": "0.0.2",
-    "native-buffer-browserify": ">=2.0.9"
+    "native-buffer-browserify": ">=2.0.9",
+    "touchup": "~0.1.2"
   },
   "scripts": {
     "start": "beefy demo.js"
