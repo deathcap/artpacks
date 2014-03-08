@@ -35,10 +35,17 @@ showTextures = () ->
 
 show = (name) ->
   packs.getTextureImage name, (img) ->
-      container.appendChild document.createTextNode name + ' = '
-      img.title = name
-      container.appendChild img
-      container.appendChild document.createElement 'br'
+      if Array.isArray(img)
+        container.appendChild document.createTextNode name + " = (animated #{img.length}) "
+        for im in img
+          im.title = name
+          container.appendChild im
+          container.appendChild document.createTextNode ', '
+      else
+        container.appendChild document.createTextNode name + ' = '
+        img.title = name
+        container.appendChild img
+        container.appendChild document.createElement 'br'
     , (err) ->
       container.appendChild document.createTextNode name + ' = '
       container.appendChild document.createTextNode '(not found)'

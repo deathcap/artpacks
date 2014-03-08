@@ -37,10 +37,23 @@
 
   show = function(name) {
     return packs.getTextureImage(name, function(img) {
-      container.appendChild(document.createTextNode(name + ' = '));
-      img.title = name;
-      container.appendChild(img);
-      return container.appendChild(document.createElement('br'));
+      var im, _i, _len, _results;
+      if (Array.isArray(img)) {
+        container.appendChild(document.createTextNode(name + (" = (animated " + img.length + ") ")));
+        _results = [];
+        for (_i = 0, _len = img.length; _i < _len; _i++) {
+          im = img[_i];
+          im.title = name;
+          container.appendChild(im);
+          _results.push(container.appendChild(document.createTextNode(', ')));
+        }
+        return _results;
+      } else {
+        container.appendChild(document.createTextNode(name + ' = '));
+        img.title = name;
+        container.appendChild(img);
+        return container.appendChild(document.createElement('br'));
+      }
     }, function(err) {
       container.appendChild(document.createTextNode(name + ' = '));
       container.appendChild(document.createTextNode('(not found)'));

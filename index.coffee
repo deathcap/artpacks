@@ -87,16 +87,25 @@ class ArtPacks extends EventEmitter
               return onerror(err, img)
 
             frames = getFrames pixels, json
+            loaded = 0
+            frameImgs = []
 
-            frameImg = new Image()
-            # for now, only first frame
-            # TODO: full animation support, see https://github.com/deathcap/artpacks/issues/7
-            frameImg.src = frames[0].image
+            # load each frame
+            frames.forEach (frame) ->
+              frameImg = new Image()
+              frameImg.src = frame.image
 
-            frameImg.onerror = (err) ->
-              onerror(err, frameImg)
-            frameImg.onload = () ->
-              onload(frameImg)
+              frameImg.onerror = (err) ->
+                onerror(err, img, frameImg)
+              frameImg.onload = () ->
+                frameImgs.push frameImg
+
+                if frameImgs.length == frames.length
+                  if frameImgs.length == 1
+                    onload frameImgs[0]
+                  else
+                    # array of frames
+                    onload frameImgs
          
       img.onerror = (err) ->
         onerror(err, img)

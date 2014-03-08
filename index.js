@@ -108,19 +108,31 @@
               json = _this.getMeta(name, 'textures');
               console.log('.mcmeta=', json);
               return getPixels(img.src, function(err, pixels) {
-                var frameImg, frames;
+                var frameImgs, frames, loaded;
                 if (err) {
                   return onerror(err, img);
                 }
                 frames = getFrames(pixels, json);
-                frameImg = new Image();
-                frameImg.src = frames[0].image;
-                frameImg.onerror = function(err) {
-                  return onerror(err, frameImg);
-                };
-                return frameImg.onload = function() {
-                  return onload(frameImg);
-                };
+                loaded = 0;
+                frameImgs = [];
+                return frames.forEach(function(frame) {
+                  var frameImg;
+                  frameImg = new Image();
+                  frameImg.src = frame.image;
+                  frameImg.onerror = function(err) {
+                    return onerror(err, img, frameImg);
+                  };
+                  return frameImg.onload = function() {
+                    frameImgs.push(frameImg);
+                    if (frameImgs.length === frames.length) {
+                      if (frameImgs.length === 1) {
+                        return onload(frameImgs[0]);
+                      } else {
+                        return onload(frameImgs);
+                      }
+                    }
+                  };
+                });
               });
             }
           };
