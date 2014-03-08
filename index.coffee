@@ -5,7 +5,8 @@ fs = require 'fs'
 binaryXHR = require 'binary-xhr'
 EventEmitter = (require 'events').EventEmitter
 Buffer = (require 'native-buffer-browserify').Buffer # >=2.0.9 for fix https://github.com/feross/native-buffer-browserify/issues/16
-touchup = require 'touchup'
+getFrames = require 'mcmeta'
+getPixels = require 'get-pixels'
 
 class ArtPacks extends EventEmitter
   constructor: (packs) ->
@@ -76,21 +77,24 @@ class ArtPacks extends EventEmitter
         if img.height == img.width
           onload(img)
         else
-          # multi-frame texture strip, need to extract frame
-          # -- for now, only the first frame, determined from texture width
-          # (TODO: full animation support, see https://github.com/deathcap/artpacks/issues/7)
-          destW = destH = img.width
+          # multi-frame texture strip
+          getPixels img.src, (err, pixels) ->
+            if err
+              onerror(err, img)
+              return
 
-          console.log 'extracting animation frame for',name
-          frameURL = touchup.crop img, 0, 0, img.width - destW, img.height - destH
-          frameImg = new Image()
-          frameImg.onload = () ->
-            console.log 'extracted animation frame',name,frameImg.width,frameImg.height,'from',img.width,img.height
-            onload(frameImg)
-          frameImg.onerror = (err) ->
-            onerror(err, frameImg)
-          frameImg.src = frameURL
+            mcmetaJson = {animation:{}} # TODO: read file
+            frames = getFrames pixels, mcmetaJson
 
+            frameImg = new Image()
+            # for now, only first frame
+            # TODO: full animation support, see https://github.com/deathcap/artpacks/issues/7
+            frameImg.src = frames[0].image
+
+            frameImg.onerror = (err) ->
+              onerror(err, frameImg)
+            frameImg.onload = () ->
+              onload(frameImg)
          
       img.onerror = (err) ->
         onerror(err, img)

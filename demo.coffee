@@ -33,7 +33,7 @@ showTextures = () ->
 
     container.appendChild document.createTextNode name + ' = '
 
-    url = packs.getTexture(name)
+    url = packs.getTexture(name) # TODO: change to use getTextureImage
     if not url?
       container.appendChild document.createTextNode '(not found)'
     else
