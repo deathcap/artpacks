@@ -31,21 +31,18 @@ showTextures = () ->
     'invalid'               # non-existent block
     ]
 
-    container.appendChild document.createTextNode name + ' = '
+    show(name)
 
-    url = packs.getTexture(name) # TODO: change to use getTextureImage
-    if not url?
-      container.appendChild document.createTextNode '(not found)'
-    else
-      img = document.createElement 'img'
-      img.src = url
+show = (name) ->
+  packs.getTextureImage name, (img) ->
+      container.appendChild document.createTextNode name + ' = '
       img.title = name
-
       container.appendChild img
-
-      #URL.revokeObjectURL(url) # TODO?
-
-    container.appendChild document.createElement 'br'
+      container.appendChild document.createElement 'br'
+    , (err) ->
+      container.appendChild document.createTextNode name + ' = '
+      container.appendChild document.createTextNode '(not found)'
+      container.appendChild document.createElement 'br'
 
 showSounds = () ->
   for name in ['liquid/splash']
@@ -69,22 +66,24 @@ showSounds = () ->
 
 
 showControls = () ->
+  controls = document.createElement 'div'
+
   input = document.createElement 'input'
   input.setAttribute 'id', 'input'
-  container.appendChild input
+  controls.appendChild input
 
-  container.appendChild document.createTextNode ' = '
+  controls.appendChild document.createTextNode ' = '
 
   img = document.createElement 'img'
   img.setAttribute 'id', 'outputImg'
   img.style.visibility = 'hidden'
-  container.appendChild img
+  controls.appendChild img
 
   audio = document.createElement 'audio'
   audio.setAttribute 'id', 'outputAudio'
   audio.controls = true
   audio.style.visibility = 'hidden'
-  container.appendChild audio
+  controls.appendChild audio
 
   showSample = () ->
     url = packs.getTexture(input.value)
@@ -104,6 +103,7 @@ showControls = () ->
 
   document.body.addEventListener 'keyup', showSample
   input.value = 'stone'
+  container.appendChild controls
   showSample()
 
 showInfo = () ->

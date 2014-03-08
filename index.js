@@ -107,8 +107,7 @@
               return getPixels(img.src, function(err, pixels) {
                 var frameImg, frames, mcmetaJson;
                 if (err) {
-                  onerror(err, img);
-                  return;
+                  return onerror(err, img);
                 }
                 mcmetaJson = {
                   animation: {}

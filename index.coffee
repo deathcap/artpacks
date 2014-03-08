@@ -80,8 +80,7 @@ class ArtPacks extends EventEmitter
           # multi-frame texture strip
           getPixels img.src, (err, pixels) ->
             if err
-              onerror(err, img)
-              return
+              return onerror(err, img)
 
             mcmetaJson = {animation:{}} # TODO: read file
             frames = getFrames pixels, mcmetaJson
