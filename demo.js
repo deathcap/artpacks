@@ -4,7 +4,7 @@
 
   createArtPacks = require('./');
 
-  urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.1-dev-ResourcePack-20140116.zip', 'invalid.zip', 'README.md'];
+  urls = ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.2-dev-ResourcePack-20140308.zip', 'invalid.zip', 'README.md'];
 
   container = document.createElement('div');
 
