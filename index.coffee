@@ -73,17 +73,20 @@ class ArtPacks extends EventEmitter
         return onerror("no such texture in artpacks: #{name}", img)
 
       img.src = url
-      img.onload = () ->
+      img.onload = () =>
         if img.height == img.width
+          # assumed static image
           onload(img)
         else
-          # multi-frame texture strip
+          # possible multi-frame texture strip; read .mcmeta file
+          json = @getMeta name, 'textures'
+          console.log('.mcmeta=',json)
+
           getPixels img.src, (err, pixels) ->
             if err
               return onerror(err, img)
 
-            mcmetaJson = {animation:{}} # TODO: read file
-            frames = getFrames pixels, mcmetaJson
+            frames = getFrames pixels, json
 
             frameImg = new Image()
             # for now, only first frame
@@ -127,6 +130,27 @@ class ArtPacks extends EventEmitter
       return blob if blob?
 
     return undefined
+
+
+  getArrayBuffer: (name, type, isMeta) ->
+    for pack in @packs
+      continue if !pack
+      arrayBuffer = pack.getArrayBuffer(name, type, isMeta)
+      return arrayBuffer if arrayBuffer?
+
+    return undefined
+
+  getMeta: (name, type) ->
+    arrayBuffer = @getArrayBuffer name, type, true
+    return undefined if not arrayBuffer?
+
+    # convert UTF-8 ArrayBuffer to string - see http://stackoverflow.com/questions/17191945/conversion-between-utf-8-arraybuffer-and-string
+    encodedString = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
+    decodedString = decodeURIComponent(escape(encodedString))
+
+    json = JSON.parse(decodedString)
+
+    return json
 
   # revoke all URLs to reload from packs list
   refresh: () ->
@@ -214,8 +238,9 @@ class ArtPackArchive
     textures: 'image/png'
     sounds: 'audio/ogg'
 
-  getArrayBuffer: (name, type) ->
+  getArrayBuffer: (name, type, isMeta=false) ->
     pathRP = @nameToPath[type](name)
+    pathRP += '.mcmeta' if isMeta
 
     found = false
 

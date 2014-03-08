@@ -101,18 +101,18 @@
           }
           img.src = url;
           img.onload = function() {
+            var json;
             if (img.height === img.width) {
               return onload(img);
             } else {
+              json = _this.getMeta(name, 'textures');
+              console.log('.mcmeta=', json);
               return getPixels(img.src, function(err, pixels) {
-                var frameImg, frames, mcmetaJson;
+                var frameImg, frames;
                 if (err) {
                   return onerror(err, img);
                 }
-                mcmetaJson = {
-                  animation: {}
-                };
-                frames = getFrames(pixels, mcmetaJson);
+                frames = getFrames(pixels, json);
                 frameImg = new Image();
                 frameImg.src = frames[0].image;
                 frameImg.onerror = function(err) {
@@ -173,6 +173,34 @@
         }
       }
       return void 0;
+    };
+
+    ArtPacks.prototype.getArrayBuffer = function(name, type, isMeta) {
+      var arrayBuffer, pack, _i, _len, _ref;
+      _ref = this.packs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pack = _ref[_i];
+        if (!pack) {
+          continue;
+        }
+        arrayBuffer = pack.getArrayBuffer(name, type, isMeta);
+        if (arrayBuffer != null) {
+          return arrayBuffer;
+        }
+      }
+      return void 0;
+    };
+
+    ArtPacks.prototype.getMeta = function(name, type) {
+      var arrayBuffer, decodedString, encodedString, json;
+      arrayBuffer = this.getArrayBuffer(name, type, true);
+      if (arrayBuffer == null) {
+        return void 0;
+      }
+      encodedString = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+      decodedString = decodeURIComponent(escape(encodedString));
+      json = JSON.parse(decodedString);
+      return json;
     };
 
     ArtPacks.prototype.refresh = function() {
@@ -297,9 +325,15 @@
       sounds: 'audio/ogg'
     };
 
-    ArtPackArchive.prototype.getArrayBuffer = function(name, type) {
+    ArtPackArchive.prototype.getArrayBuffer = function(name, type, isMeta) {
       var found, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _len;
+      if (isMeta == null) {
+        isMeta = false;
+      }
       pathRP = this.nameToPath[type](name);
+      if (isMeta) {
+        pathRP += '.mcmeta';
+      }
       found = false;
       if (pathRP.indexOf('*') === -1) {
         tryPaths = [pathRP];
