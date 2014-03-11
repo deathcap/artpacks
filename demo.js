@@ -134,7 +134,7 @@
     }
     container.appendChild(document.createTextNode(s));
     container.appendChild(document.createElement('br'));
-    container.appendChild(document.createTextNode('Drop a pack here to load (hold shift to append), or enter a name in text box below to lookup:'));
+    container.appendChild(document.createTextNode('Drop a pack here to load (hold shift to replace), or enter a name in text box below to lookup:'));
     container.appendChild(document.createElement('br'));
     return container.appendChild(document.createElement('br'));
   };
@@ -178,7 +178,7 @@
           return;
         }
         arrayBuffer = readEvent.currentTarget.result;
-        if (!mouseEvent.shiftKey) {
+        if (mouseEvent.shiftKey) {
           packs.clear();
         }
         return packs.addPack(arrayBuffer, file.name);

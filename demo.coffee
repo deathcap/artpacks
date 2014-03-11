@@ -121,7 +121,7 @@ showInfo = () ->
 
   container.appendChild document.createTextNode s
   container.appendChild document.createElement 'br'
-  container.appendChild document.createTextNode 'Drop a pack here to load (hold shift to append), or enter a name in text box below to lookup:'
+  container.appendChild document.createTextNode 'Drop a pack here to load (hold shift to replace), or enter a name in text box below to lookup:'
   container.appendChild document.createElement 'br'
   container.appendChild document.createElement 'br'
 
@@ -158,8 +158,8 @@ drop = (mouseEvent) ->
 
       arrayBuffer = readEvent.currentTarget.result
 
-      if not mouseEvent.shiftKey
-        # start over, replacing all current packs - unless shift is held down (then add to)
+      if mouseEvent.shiftKey
+        # if shift is held down: start over, replacing all current packs
         packs.clear()
 
       packs.addPack arrayBuffer, file.name
