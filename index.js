@@ -43,6 +43,7 @@
       if (x instanceof ArrayBuffer) {
         rawZipArchiveData = x;
         this.packs.push(new ArtPackArchive(rawZipArchiveData, name != null ? name : "(" + rawZipArchiveData.byteLength + " raw bytes)"));
+        this.refresh();
         this.emit('loadedRaw', rawZipArchiveData);
         return this.emit('loadedAll');
       } else if (typeof x === 'string') {
@@ -68,6 +69,7 @@
             }
             try {
               _this.packs[packIndex] = new ArtPackArchive(packData, url);
+              _this.refresh();
             } catch (_error) {
               e = _error;
               console.log("artpack failed to parse \#" + packIndex + " - " + url + ": " + e);
@@ -85,7 +87,8 @@
         pack = x;
         this.emit('loadedPack', pack);
         this.emit('loadedAll');
-        return this.packs.push(pack);
+        this.packs.push(pack);
+        return this.refresh();
       }
     };
 

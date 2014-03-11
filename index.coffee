@@ -23,6 +23,7 @@ class ArtPacks extends EventEmitter
     if x instanceof ArrayBuffer
       rawZipArchiveData = x
       @packs.push new ArtPackArchive(rawZipArchiveData, name ? "(#{rawZipArchiveData.byteLength} raw bytes)")
+      @refresh()
       @emit 'loadedRaw', rawZipArchiveData
       @emit 'loadedAll'
     else if typeof x == 'string'
@@ -48,6 +49,7 @@ class ArtPacks extends EventEmitter
 
         try
           @packs[packIndex] = new ArtPackArchive(packData, url)
+          @refresh()
         catch e
           console.log "artpack failed to parse \##{packIndex} - #{url}: #{e}"
           @emit 'failedURL', url, e
@@ -63,6 +65,7 @@ class ArtPacks extends EventEmitter
       @emit 'loadedPack', pack
       @emit 'loadedAll'
       @packs.push pack  # assumed to be ArtPackArchive
+      @refresh()
 
   getTextureImage: (name, onload, onerror) ->
     img = new Image()
