@@ -173,7 +173,7 @@
 
     ArtPacks.prototype.getBlob = function(name, type) {
       var blob, pack, _i, _len, _ref;
-      _ref = this.packs;
+      _ref = this.packs.slice(0).reverse();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
         if (!pack) {
@@ -189,7 +189,7 @@
 
     ArtPacks.prototype.getArrayBuffer = function(name, type, isMeta) {
       var arrayBuffer, pack, _i, _len, _ref;
-      _ref = this.packs;
+      _ref = this.packs.slice(0).reverse();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
         if (!pack) {
@@ -233,7 +233,7 @@
     ArtPacks.prototype.getLoadedPacks = function() {
       var pack, ret, _i, _len, _ref;
       ret = [];
-      _ref = this.packs;
+      _ref = this.packs.slice(0).reverse();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pack = _ref[_i];
         if (pack != null) {

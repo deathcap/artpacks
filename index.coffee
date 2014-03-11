@@ -133,7 +133,7 @@ class ArtPacks extends EventEmitter
     return url
 
   getBlob: (name, type) ->
-    for pack in @packs    # search packs in order
+    for pack in @packs.slice(0).reverse()    # search packs in reverse order
       continue if !pack
       blob = pack.getBlob(name, type)
       return blob if blob?
@@ -142,7 +142,7 @@ class ArtPacks extends EventEmitter
 
 
   getArrayBuffer: (name, type, isMeta) ->
-    for pack in @packs
+    for pack in @packs.slice(0).reverse()
       continue if !pack
       arrayBuffer = pack.getArrayBuffer(name, type, isMeta)
       return arrayBuffer if arrayBuffer?
@@ -174,7 +174,7 @@ class ArtPacks extends EventEmitter
 
   getLoadedPacks: () ->
     ret = []
-    for pack in @packs
+    for pack in @packs.slice(0).reverse()
       ret.push pack if pack?
     return ret
 
