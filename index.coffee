@@ -7,12 +7,15 @@ EventEmitter = (require 'events').EventEmitter
 Buffer = (require 'native-buffer-browserify').Buffer # >=2.0.9 for fix https://github.com/feross/native-buffer-browserify/issues/16
 getFrames = require 'mcmeta'
 getPixels = require 'get-pixels'
+savePixels = require 'save-pixels'
+graycolorize = require 'graycolorize'
 
 class ArtPacks extends EventEmitter
   constructor: (packs) ->
     @packs = []
     @pending = {}
     @blobURLs = {}
+    @shouldColorize = { 'grass_top':true, 'leaves_oak':true }  # TODO: more comprehensive, configurable
 
     @setMaxListeners 0    # since each texture can @on 'loadedAll'.. it adds up
 
@@ -67,6 +70,22 @@ class ArtPacks extends EventEmitter
       @packs.push pack  # assumed to be ArtPackArchive
       @refresh()
 
+  colorize: (img, onload, onerror) ->
+    getPixels img.src, (err, pixels) ->
+      if err
+        return onerror(err, img)
+
+      # see https://en.wikipedia.org/wiki/HSL_color_space#HSV_.28Hue_Saturation_Value.29
+      @colorMap ?= graycolorize.generateMap 120/360, 0.7
+
+      graycolorize pixels, @colorMap
+
+      img2 = new Image()
+      img2.src = savePixels(pixels, 'canvas').toDataURL()
+      img2.onload = () -> onload(img2)
+      img2.onerror = (err) -> onerror(err, img2)
+
+
   getTextureImage: (name, onload, onerror) ->
     img = new Image()
 
@@ -77,6 +96,9 @@ class ArtPacks extends EventEmitter
 
       img.src = url
       img.onload = () =>
+        if @shouldColorize[name]
+          return @colorize(img, onload, onerror)
+
         if img.height == img.width
           # assumed static image
           onload(img)
