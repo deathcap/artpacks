@@ -257,7 +257,8 @@
         url = _ref[_i];
         URL.revokeObjectURL(url);
       }
-      return this.blobURLs = [];
+      this.blobURLs = [];
+      return this.emit('refresh');
     };
 
     ArtPacks.prototype.clear = function() {

@@ -191,6 +191,7 @@ class ArtPacks extends EventEmitter
     for url in @blobURLs
       URL.revokeObjectURL(url)
     @blobURLs = []
+    @emit 'refresh'
 
   # delete all loaded packs
   clear: () ->
