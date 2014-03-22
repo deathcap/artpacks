@@ -100,6 +100,14 @@
       }
     };
 
+    ArtPacks.prototype.swap = function(i, j) {
+      var temp;
+      temp = this.packs[i];
+      this.packs[i] = this.packs[j];
+      this.packs[j] = temp;
+      return this.refresh();
+    };
+
     ArtPacks.prototype.colorize = function(img, onload, onerror) {
       return getPixels(img.src, function(err, pixels) {
         var img2;

@@ -70,6 +70,13 @@ class ArtPacks extends EventEmitter
       @packs.push pack  # assumed to be ArtPackArchive
       @refresh()
 
+  # swap the ordering of two loaded packs
+  swap: (i, j) ->
+    temp = @packs[i]
+    @packs[i] = @packs[j]
+    @packs[j] = temp
+    @refresh()
+
   colorize: (img, onload, onerror) ->
     getPixels img.src, (err, pixels) ->
       if err
