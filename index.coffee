@@ -75,6 +75,8 @@ class ArtPacks extends EventEmitter
 
   # swap the ordering of two loaded packs
   swap: (i, j) ->
+    return if i == j
+
     temp = @packs[i]
     @packs[i] = @packs[j]
     @packs[j] = temp

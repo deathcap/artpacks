@@ -106,6 +106,9 @@
 
     ArtPacks.prototype.swap = function(i, j) {
       var temp;
+      if (i === j) {
+        return;
+      }
       temp = this.packs[i];
       this.packs[i] = this.packs[j];
       this.packs[j] = temp;
