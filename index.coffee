@@ -315,7 +315,7 @@ class ArtPackArchive
 
     arrayBuffer = @getFixedPathArrayBuffer 'pack.png'
     if arrayBuffer?
-      blob = new Blob [arrayBuffer, {type: 'image/png'}]
+      blob = new Blob [arrayBuffer], {type: 'image/png'}
       @logoURL = URL.createObjectURL blob
     else
       # placeholder for no pack image

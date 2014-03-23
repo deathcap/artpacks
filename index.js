@@ -445,11 +445,9 @@
       }
       arrayBuffer = this.getFixedPathArrayBuffer('pack.png');
       if (arrayBuffer != null) {
-        blob = new Blob([
-          arrayBuffer, {
-            type: 'image/png'
-          }
-        ]);
+        blob = new Blob([arrayBuffer], {
+          type: 'image/png'
+        });
         return this.logoURL = URL.createObjectURL(blob);
       } else {
         return this.logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII=';
