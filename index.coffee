@@ -10,6 +10,9 @@ getPixels = require 'get-pixels'
 savePixels = require 'save-pixels'
 graycolorize = require 'graycolorize'
 
+# convert UTF-8 ArrayBuffer to string - see http://stackoverflow.com/questions/17191945/conversion-between-utf-8-arraybuffer-and-string
+arrayBufferToString = (arrayBuffer) -> String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
+
 class ArtPacks extends EventEmitter
   constructor: (packs) ->
     @packs = []
@@ -185,8 +188,7 @@ class ArtPacks extends EventEmitter
     arrayBuffer = @getArrayBuffer name, type, true
     return undefined if not arrayBuffer?
 
-    # convert UTF-8 ArrayBuffer to string - see http://stackoverflow.com/questions/17191945/conversion-between-utf-8-arraybuffer-and-string
-    encodedString = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
+    encodedString = arrayBufferToString arrayBuffer
     decodedString = decodeURIComponent(escape(encodedString))
 
     json = JSON.parse(decodedString)
@@ -238,7 +240,7 @@ class ArtPackArchive
     @namespaces = @scanNamespaces()
     @namespaces.push 'foo'  # test
 
-  toString: () -> @name ? 'ArtPack'  # TODO: get name from pack.txt
+  toString: () -> @name ? 'ArtPack'  # TODO: maybe call getDescription()
 
   # Get list of "namespaces" with a resourcepack
   # all of assets/<foo>
@@ -304,6 +306,31 @@ class ArtPackArchive
     return undefined if not arrayBuffer?
 
     return new Blob [arrayBuffer], {type: @mimeTypes[type]}
+
+  getFixedPathArrayBuffer: (path) -> @zipEntries[path]?.getData()
+  getPackLogo: () ->
+    return @logoURL if @logoURL
+
+    arrayBuffer = @getFixedPathArrayBuffer 'pack.png'
+    if arrayBuffer?
+      blob = new Blob [arrayBuffer, {type: 'image/png'}]
+      @logoURL = URL.createObjectURL blob
+    else
+      # placeholder for no pack image
+      # solid gray 2x2 processed with `pngcrush -rem alla -rem text` (for some reason, 1x1 doesn't crush)
+      @logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII='
+
+  getPackJSON: () ->
+    return @json if @json?
+
+    arrayBuffer = @getFixedPathArrayBuffer 'pack.mcmeta'
+    return {} if not arrayBuffer?
+
+    str = arrayBufferToString arrayBuffer
+    @json = JSON.parse str
+
+  getDescription: () ->
+    return @getPackJSON()?.pack?.description ? @name
 
 module.exports = (opts) ->
   return new ArtPacks(opts)
