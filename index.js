@@ -136,6 +136,22 @@
       });
     };
 
+    ArtPacks.prototype.getTextureNdarray = function(name, onload, onerror) {
+      var onload2;
+      onload2 = function(img) {
+        if (Array.isArray(img)) {
+          img = img[0];
+        }
+        return getPixels(img.src, function(err, pixels) {
+          if (err) {
+            return onerror(err, img);
+          }
+          return onload(pixels);
+        });
+      };
+      return this.getTextureImage(name, onload2, onerror);
+    };
+
     ArtPacks.prototype.getTextureImage = function(name, onload, onerror) {
       var img, load;
       img = new Image();

@@ -97,7 +97,23 @@ class ArtPacks extends EventEmitter
       img2.onload = () -> onload(img2)
       img2.onerror = (err) -> onerror(err, img2)
 
+  getTextureNdarray: (name, onload, onerror) ->
+    onload2 = (img) ->
+      if Array.isArray(img)
+        # TODO: support multiple textures (animation frame strips), add another dimension to the ndarray? (always)
+        # currently, only using first frame
+        img = img[0]
 
+      # get as [m,n,4] RGBA ndarray
+      getPixels img.src, (err, pixels) ->
+        if err
+          return onerror(err, img)
+
+        onload(pixels)
+
+    @getTextureImage name, onload2, onerror
+
+  # TODO: refactor to operate on ndarray directly
   getTextureImage: (name, onload, onerror) ->
     img = new Image()
 
