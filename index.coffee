@@ -169,17 +169,18 @@ class ArtPacks extends EventEmitter
     @blobURLs[type + ' ' + name] = url
     return url
 
+  mimeTypes:
+    textures: 'image/png'
+    sounds: 'audio/ogg'
+
   getBlob: (name, type) ->
-    for pack in @packs.slice(0).reverse()    # search packs in reverse order
-      continue if !pack
-      blob = pack.getBlob(name, type)
-      return blob if blob?
+    arrayBuffer = @getArrayBuffer name, type, false
+    return undefined if not arrayBuffer?
 
-    return undefined
-
+    return new Blob [arrayBuffer], {type: @mimeTypes[type]}
 
   getArrayBuffer: (name, type, isMeta) ->
-    for pack in @packs.slice(0).reverse()
+    for pack in @packs.slice(0).reverse()     # search packs in reverse order
       continue if !pack
       arrayBuffer = pack.getArrayBuffer(name, type, isMeta)
       return arrayBuffer if arrayBuffer?
@@ -280,10 +281,6 @@ class ArtPackArchive
 
       pathRP = "assets/#{namespace}/sounds/#{name}.ogg"
 
-  mimeTypes:
-    textures: 'image/png'
-    sounds: 'audio/ogg'
-
   getArrayBuffer: (name, type, isMeta=false) ->
     pathRP = @nameToPath[type](name)
     pathRP += '.mcmeta' if isMeta
@@ -302,12 +299,6 @@ class ArtPackArchive
         return zipEntry.getData()
 
     return undefined # not found
-
-  getBlob: (name, type) ->
-    arrayBuffer = @getArrayBuffer name, type
-    return undefined if not arrayBuffer?
-
-    return new Blob [arrayBuffer], {type: @mimeTypes[type]}
 
   getFixedPathArrayBuffer: (path) -> @zipEntries[path]?.getData()
   getPackLogo: () ->

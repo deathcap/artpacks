@@ -221,20 +221,20 @@
       return url;
     };
 
+    ArtPacks.prototype.mimeTypes = {
+      textures: 'image/png',
+      sounds: 'audio/ogg'
+    };
+
     ArtPacks.prototype.getBlob = function(name, type) {
-      var blob, pack, _i, _len, _ref;
-      _ref = this.packs.slice(0).reverse();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        pack = _ref[_i];
-        if (!pack) {
-          continue;
-        }
-        blob = pack.getBlob(name, type);
-        if (blob != null) {
-          return blob;
-        }
+      var arrayBuffer;
+      arrayBuffer = this.getArrayBuffer(name, type, false);
+      if (arrayBuffer == null) {
+        return void 0;
       }
-      return void 0;
+      return new Blob([arrayBuffer], {
+        type: this.mimeTypes[type]
+      });
     };
 
     ArtPacks.prototype.getArrayBuffer = function(name, type, isMeta) {
@@ -383,11 +383,6 @@
       }
     };
 
-    ArtPackArchive.prototype.mimeTypes = {
-      textures: 'image/png',
-      sounds: 'audio/ogg'
-    };
-
     ArtPackArchive.prototype.getArrayBuffer = function(name, type, isMeta) {
       var found, namespace, pathRP, tryPath, tryPaths, zipEntry, _i, _len;
       if (isMeta == null) {
@@ -420,17 +415,6 @@
         }
       }
       return void 0;
-    };
-
-    ArtPackArchive.prototype.getBlob = function(name, type) {
-      var arrayBuffer;
-      arrayBuffer = this.getArrayBuffer(name, type);
-      if (arrayBuffer == null) {
-        return void 0;
-      }
-      return new Blob([arrayBuffer], {
-        type: this.mimeTypes[type]
-      });
     };
 
     ArtPackArchive.prototype.getFixedPathArrayBuffer = function(path) {
