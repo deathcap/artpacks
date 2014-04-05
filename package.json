@@ -13,13 +13,13 @@
     "textures"
   ],
   "dependencies": {
-    "zip": "git://github.com/deathcap/zip.git#ca04adc16fee313467715c7cc3f0cfc597e63220",
-    "binary-xhr": "0.0.2",
+    "zip": "^1.2.0",
+    "binary-xhr": "^0.0.2",
     "native-buffer-browserify": ">=2.0.9",
-    "mcmeta": "~0.1.0",
-    "get-pixels": "~1.0.1",
+    "mcmeta": "^0.1.0",
+    "get-pixels": "^1.0.1",
     "save-pixels": "^0.3.0",
-    "graycolorize": "~0.1.1"
+    "graycolorize": "^0.1.1"
   },
   "scripts": {
     "start": "beefy demo.js"
