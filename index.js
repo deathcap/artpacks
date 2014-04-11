@@ -139,12 +139,10 @@
     ArtPacks.prototype.getTextureNdarray = function(name, onload, onerror) {
       var onload2;
       onload2 = function(img) {
-        console.log('ENTER getTextureNdarray onload2', name);
         if (Array.isArray(img)) {
           img = img[0];
         }
         return getPixels(img.src, function(err, pixels) {
-          console.log('ENTER getTextureNdarray getPixels onload2', name);
           if (err) {
             return onerror(err, img);
           }
@@ -160,7 +158,6 @@
       load = (function(_this) {
         return function() {
           var url;
-          console.log('ENTER getTextureImage load', name);
           url = _this.getTexture(name);
           if (url == null) {
             return onerror("no such texture in artpacks: " + name, img);
@@ -168,19 +165,16 @@
           img.src = url;
           img.onload = function() {
             var json;
-            console.log('ENTER getTextureImage onload', name);
             if (_this.shouldColorize[name]) {
               return _this.colorize(img, onload, onerror);
             }
             if (img.height === img.width) {
-              console.log('about to ENTER getTextureImage to callback onload()', name, onload);
               return onload(img);
             } else {
               json = _this.getMeta(name, 'textures');
               console.log('.mcmeta=', json);
               return getPixels(img.src, function(err, pixels) {
                 var frameImgs, frames, loaded;
-                console.log('ENTER getTextureImage getPixels', name);
                 if (err) {
                   return onerror(err, img);
                 }

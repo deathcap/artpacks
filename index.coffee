@@ -99,7 +99,6 @@ class ArtPacks extends EventEmitter
 
   getTextureNdarray: (name, onload, onerror) ->
     onload2 = (img) ->
-      console.log 'ENTER getTextureNdarray onload2',name
       if Array.isArray(img)
         # TODO: support multiple textures (animation frame strips), add another dimension to the ndarray? (always)
         # currently, only using first frame
@@ -107,7 +106,6 @@ class ArtPacks extends EventEmitter
 
       # get as [m,n,4] RGBA ndarray
       getPixels img.src, (err, pixels) ->
-        console.log 'ENTER getTextureNdarray getPixels onload2',name
         if err
           return onerror(err, img)
 
@@ -120,20 +118,17 @@ class ArtPacks extends EventEmitter
     img = new Image()
 
     load = () =>
-      console.log 'ENTER getTextureImage load',name
       url = @getTexture name
       if not url?
         return onerror("no such texture in artpacks: #{name}", img)
 
       img.src = url
       img.onload = () =>
-        console.log 'ENTER getTextureImage onload',name
         if @shouldColorize[name]
           return @colorize(img, onload, onerror)
 
         if img.height == img.width
           # assumed static image
-          console.log 'about to ENTER getTextureImage to callback onload()',name,onload
           onload(img)
         else
           # possible multi-frame texture strip; read .mcmeta file
@@ -141,7 +136,6 @@ class ArtPacks extends EventEmitter
           console.log('.mcmeta=',json)
 
           getPixels img.src, (err, pixels) ->
-            console.log 'ENTER getTextureImage getPixels',name
             if err
               return onerror(err, img)
 
