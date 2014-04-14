@@ -14,7 +14,7 @@
 
   EventEmitter = (require('events')).EventEmitter;
 
-  Buffer = (require('native-buffer-browserify')).Buffer;
+  Buffer = (require('buffer/')).Buffer;
 
   getFrames = require('mcmeta');
 

@@ -4,7 +4,7 @@ path = require 'path'
 fs = require 'fs'
 binaryXHR = require 'binary-xhr'
 EventEmitter = (require 'events').EventEmitter
-Buffer = (require 'native-buffer-browserify').Buffer # >=2.0.9 for fix https://github.com/feross/native-buffer-browserify/issues/16
+Buffer = (require 'buffer/').Buffer # >=2.0.9 for fix https://github.com/feross/buffer/issues/16
 getFrames = require 'mcmeta'
 getPixels = require 'get-pixels'
 savePixels = require 'save-pixels'
