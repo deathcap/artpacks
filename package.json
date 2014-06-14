@@ -2,6 +2,7 @@
   "name": "artpacks",
   "description": "cascading texture/sound artwork pack loader",
   "version": "0.3.2",
+  "main": "artpacks.coffee",
   "repository": {
     "type": "git",
     "url": "git@github.com:deathcap/artpacks.git"
@@ -18,11 +19,16 @@
     "mcmeta": "^0.1.0",
     "get-pixels": "^1.0.1",
     "save-pixels": "^0.3.0",
-    "graycolorize": "^0.1.1"
+    "graycolorize": "^0.1.1",
+    "coffeeify": "^0.6.0"
   },
   "scripts": {
-    "start": "beefy demo.js"
+    "start": "beefy demo.coffee"
   },
-  "peerDependencies": {},
+  "browserify": {
+    "transform": [
+      "coffeeify"
+    ]
+  },
   "license": "MIT"
 }
