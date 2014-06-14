@@ -1,7 +1,7 @@
 {
   "name": "artpacks",
   "description": "cascading texture/sound artwork pack loader",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "main": "artpacks.coffee",
   "repository": {
     "type": "git",
