@@ -297,6 +297,10 @@ class ArtPackArchive
       pathRP = "assets/#{namespace}/sounds/#{name}.ogg"
 
   getArrayBuffer: (name, type, isMeta=false) ->
+    if typeof name != 'string'
+      console.log('invalid artpacks resource name (not a string) requested:',name,type)
+      throw new Error("invalid artpacks resource name (not a string) requested: #{JSON.stringify(name)} of #{type}")
+
     pathRP = @nameToPath[type](name)
     pathRP += '.mcmeta' if isMeta
 
