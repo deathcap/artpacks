@@ -1,187 +1,234 @@
+'use strict';
 
-ZIP = require 'zip'
-path = require 'path'
-fs = require 'fs'
-binaryXHR = require 'binary-xhr'
-EventEmitter = (require 'events').EventEmitter
-getFrames = require 'mcmeta'
-getPixels = require 'get-pixels'
-savePixels = require 'save-pixels'
-graycolorize = require 'graycolorize'
+const ZIP = require('zip');
+const path = require('path');
+const fs = require('fs');
+const binaryXHR = require('binary-xhr');
+const EventEmitter = (require('events').EventEmitter);
+const getFrames = require('mcmeta');
+const getPixels = require('get-pixels');
+const savePixels = require('save-pixels');
+const graycolorize = require('graycolorize');
 
-# convert UTF-8 ArrayBuffer to string - see http://stackoverflow.com/questions/17191945/conversion-between-utf-8-arraybuffer-and-string
-arrayBufferToString = (arrayBuffer) -> String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
+// convert UTF-8 ArrayBuffer to string - see http://stackoverflow.com/questions/17191945/conversion-between-utf-8-arraybuffer-and-string
+function arrayBufferToString(arrayBuffer) {
+  return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+}
 
-class ArtPacks extends EventEmitter
-  constructor: (packs) ->
-    @packs = []
-    @pending = {}
-    @blobURLs = {}
-    @shouldColorize = { 'grass_top':true, 'leaves_oak':true }  # TODO: more comprehensive, configurable
+class ArtPacks extends EventEmitter {
+  constructor(packs) {
+    super();
+    this.packs = [];
+    this.pending = {};
+    this.blobURLs = {};
+    this.shouldColorize = { 'grass_top':true, 'leaves_oak':true };  // TODO: more comprehensive, configurable
 
-    @setMaxListeners 0    # since each texture can @on 'loadedAll'.. it adds up
+    this.setMaxListeners(0);    // since each texture can this.on 'loadedAll'.. it adds up
 
-    for pack in packs
-      @addPack pack
+    for (let pack of packs) {
+      this.addPack(pack);
+    }
+  }
 
-  addPack: (x, name=undefined) ->
-    if x instanceof ArrayBuffer
-      rawZipArchiveData = x
-      @packs.push new ArtPackArchive(rawZipArchiveData, name ? "(#{rawZipArchiveData.byteLength} raw bytes)")
-      @refresh()
-      @emit 'loadedRaw', rawZipArchiveData
-      @emit 'loadedAll'
-    else if typeof x == 'string'
-      url = x
+  addPack(x, name) {
+    if (x instanceof ArrayBuffer) {
+      const rawZipArchiveData = x;
+      this.packs.push(new ArtPackArchive(rawZipArchiveData, name ? name : `(${rawZipArchiveData.byteLength} raw bytes)`));
+      this.refresh();
+      this.emit('loadedRaw', rawZipArchiveData);
+      this.emit('loadedAll');
+    } else if (typeof x === 'string') {
+      const url = x;
 
-      if not XMLHttpRequest?
-        throw new Error "artpacks unsupported addPack url #{x} without XMLHttpRequest"
+      if (window.XMLHttpRequest === undefined) {
+        throw new Error(`artpacks unsupported addPack url ${x} without XMLHttpRequest`);
+      }
 
-      @pending[url] = true
-      packIndex = @packs.length
-      @packs[packIndex] = null # save place while loading
-      @emit 'loadingURL', url
-      binaryXHR url, (err, packData) =>
-        if @packs[packIndex] != null
-          console.log "artpacks warning: index #{packIndex} occupied, expected to be empty while loading #{url}"
+      this.pending[url] = true;
+      packIndex = this.packs.length;
+      this.packs[packIndex] = null; // save place while loading
+      this.emit('loadingURL', url);
+      binaryXHR(url, (err, packData) => {
+        if (this.packs[packIndex] != null) {
+          console.log(`artpacks warning: index ${packIndex} occupied, expected to be empty while loading ${url}`);
+        }
 
-        if err || !packData
-          console.log "artpack failed to load \##{packIndex} - #{url}: #{err}"
-          @emit 'failedURL', url, err
-          delete @pending[url]
-          return
-          # @packs[packIndex] stays null
+        if (err || !packData) {
+          console.log(`artpack failed to load #${packIndex} - ${url}: ${err}`);
+          this.emit('failedURL', url, err);
+          delete this.pending[url];
+          return;
+          // this.packs[packIndex] stays null
+        }
 
-        try
-          @packs[packIndex] = new ArtPackArchive(packData, url)
-          @refresh()
-        catch e
-          console.log "artpack failed to parse \##{packIndex} - #{url}: #{e}"
-          @emit 'failedURL', url, e
-          # fallthrough
+        try {
+          this.packs[packIndex] = new ArtPackArchive(packData, url);
+          this.refresh();
+        } catch (e) {
+          console.log(`artpack failed to parse #${packIndex} - ${url}: ${e}`);
+          this.emit('failedURL', url, e);
+          // fallthrough
+        }
 
-        delete @pending[url]
+        delete this.pending[url];
 
-        console.log 'artpacks loaded pack:',url
-        @emit 'loadedURL', url
-        @emit 'loadedAll' if Object.keys(@pending).length == 0
-    else
-      pack = x
-      @emit 'loadedPack', pack
-      @emit 'loadedAll'
-      @packs.push pack  # assumed to be ArtPackArchive
-      @refresh()
+        console.log('artpacks loaded pack:',url);
+        this.emit('loadedURL', url);
+        if (Object.keys(this.pending).length === 0) {
+          this.emit('loadedAll');
+        }
+      }
+    } else {
+      const pack = x;
+      this.emit('loadedPack', pack);
+      this.emit('loadedAll');
+      this.packs.push(pack);  // assumed to be ArtPackArchive
+      this.refresh();
+    }
+  }
 
-  # swap the ordering of two loaded packs
-  swap: (i, j) ->
-    return if i == j
 
-    temp = @packs[i]
-    @packs[i] = @packs[j]
-    @packs[j] = temp
-    @refresh()
+  // swap the ordering of two loaded packs
+  swap(i, j) {
+    if (i === j) return;
 
-  colorize: (img, onload, onerror) ->
-    getPixels img.src, (err, pixels) ->
-      if err
-        return onerror(err, img)
+    const temp = this.packs[i];
+    this.packs[i] = this.packs[j];
+    this.packs[j] = temp;
+    this.refresh();
+  }
 
-      # see https://en.wikipedia.org/wiki/HSL_color_space#HSV_.28Hue_Saturation_Value.29
-      @colorMap ?= graycolorize.generateMap 120/360, 0.7
+  colorize(img, onload, onerror) {
+    getPixels(img.src, (err, pixels) => {
+      if (err) {
+        return onerror(err, img);
+      }
 
-      graycolorize pixels, @colorMap
+      // see https://en.wikipedia.org/wiki/HSL_color_space#HSV_.28Hue_Saturation_Value.29
+      if (this.colorMap === undefined) {
+        this.colorMap = graycolorize.generateMap(120/360, 0.7);
+      }
 
-      img2 = new Image()
-      img2.src = savePixels(pixels, 'canvas').toDataURL()
-      img2.onload = () -> onload(img2)
-      img2.onerror = (err) -> onerror(err, img2)
+      graycolorize(pixels, this.colorMap);
 
-  getTextureNdarray: (name, onload, onerror) ->
-    onload2 = (img) ->
-      if Array.isArray(img)
-        # TODO: support multiple textures (animation frame strips), add another dimension to the ndarray? (always)
-        # currently, only using first frame
-        img = img[0]
+      const img2 = new Image();
+      img2.src = savePixels(pixels, 'canvas').toDataURL();
+      img2.onload = () => onload(img2);
+      img2.onerror = (err) => onerror(err, img2);
+    });
+  }
 
-      # get as [m,n,4] RGBA ndarray
-      getPixels img.src, (err, pixels) ->
-        if err
+  getTextureNdarray(name, onload, onerror) {
+    function onload2(img) {
+      if (Array.isArray(img)) {
+        // TODO: support multiple textures (animation frame strips), add another dimension to the ndarray? (always)
+        // currently, only using first frame
+        img = img[0];
+      }
+
+      // get as [m,n,4] RGBA ndarray
+      getPixelsx(img.src, (err, pixels) => {
+        if (err) {
           return onerror(err, img)
+        }
 
-        onload(pixels)
+        onload(pixels);
+      });
+    }
 
-    @getTextureImage name, onload2, onerror
+    this.getTextureImage(name, onload2, onerror);
+  }
 
-  # TODO: refactor to operate on ndarray directly
-  getTextureImage: (name, onload, onerror) ->
-    img = new Image()
+  // TODO: refactor to operate on ndarray directly
+  getTextureImage(name, onload, onerror) {
+    const img = new Image();
 
-    load = () =>
-      url = @getTexture name
-      if not url?
-        return onerror("no such texture in artpacks: #{name}", img)
+    function load() {
+      const url = this.getTexture name;
+      if (!url) {
+        return onerror(`no such texture in artpacks: ${name}`, img);
+      }
 
-      img.src = url
-      img.onload = () =>
-        if @shouldColorize[name]
-          return @colorize(img, onload, onerror)
+      img.src = url;
+      img.onload = () => {
+        if (this.shouldColorize[name]) {
+          return this.colorize(img, onload, onerror);
+        }
 
-        if img.height == img.width
-          # assumed static image
-          onload(img)
-        else
-          # possible multi-frame texture strip; read .mcmeta file
-          json = @getMeta name, 'textures'
-          console.log('.mcmeta=',json)
+        if (img.height === img.width) {
+          // assumed static image
+          onload(img);
+        } else {
+          // possible multi-frame texture strip; read .mcmeta file
+          const json = this.getMeta(name, 'textures');
+          console.log('.mcmeta=',json);
 
-          getPixels img.src, (err, pixels) ->
-            if err
-              return onerror(err, img)
+          getPixels(img.src, (err, pixels) => {
+            if (err) {
+              return onerror(err, img);
+            }
 
-            frames = getFrames pixels, json
-            loaded = 0
-            frameImgs = []
+            const frames = getFrames(pixels, json);
+            let loaded = 0;
+            let frameImgs = [];
 
-            # load each frame
-            frames.forEach (frame) ->
-              frameImg = new Image()
-              frameImg.src = frame.image
+            // load each frame
+            frames.forEach((frame) => {
+              const frameImg = new Image()
+              const frameImg.src = frame.image;
 
-              frameImg.onerror = (err) ->
-                onerror(err, img, frameImg)
-              frameImg.onload = () ->
-                frameImgs.push frameImg
+              frameImg.onerror = (err) => {
+                onerror(err, img, frameImg);
+              };
+              frameImg.onload = () => {
+                frameImgs.push(frameImg);
 
-                if frameImgs.length == frames.length
-                  if frameImgs.length == 1
-                    onload frameImgs[0]
-                  else
-                    # array of frames
-                    onload frameImgs
-         
-      img.onerror = (err) ->
-        onerror(err, img)
+                if (frameImgs.length === frames.length) {
+                  if (frameImgs.length === 1) {
+                    onload(frameImgs[0]);
+                  } else {
+                    // array of frames
+                    onload(frameImgs);
+                  }
+                }
+              }
+            });
+          });
+        }
+      }
 
-    if @isQuiescent()
-      load()
-    else
-      @on 'loadedAll', load
+      img.onerror = (err) => {
+        onerror(err, img);
+      }
+    }
 
-  getTexture: (name) -> @getURL name, 'textures'
-  getSound: (name) -> @getURL name, 'sounds'
+    if (this.isQuiescent()) {
+      load();
+    } else {
+      this.on('loadedAll', load);
+    }
+  }
+
+  getTexture(name) {
+    return this.getURL(name, 'textures');
+  }
+
+  getSound(name) {
+    return this.getURL(name, 'sounds');
+  }
 
   getURL: (name, type) ->
     # already have URL?
-    url = @blobURLs[type + ' ' + name]
+    url = this.blobURLs[type + ' ' + name]
     return url if url?
 
     # get a blob
-    blob = @getBlob(name, type)
+    blob = this.getBlob(name, type)
     return undefined if not blob?
 
     # create URL and return
     url = URL.createObjectURL(blob)
-    @blobURLs[type + ' ' + name] = url
+    this.blobURLs[type + ' ' + name] = url
     return url
 
   mimeTypes:
@@ -189,13 +236,13 @@ class ArtPacks extends EventEmitter
     sounds: 'audio/ogg'
 
   getBlob: (name, type) ->
-    arrayBuffer = @getArrayBuffer name, type, false
+    arrayBuffer = this.getArrayBuffer name, type, false
     return undefined if not arrayBuffer?
 
-    return new Blob [arrayBuffer], {type: @mimeTypes[type]}
+    return new Blob [arrayBuffer], {type: this.mimeTypes[type]}
 
   getArrayBuffer: (name, type, isMeta) ->
-    for pack in @packs.slice(0).reverse()     # search packs in reverse order
+    for pack in this.packs.slice(0).reverse()     # search packs in reverse order
       continue if !pack
       arrayBuffer = pack.getArrayBuffer(name, type, isMeta)
       return arrayBuffer if arrayBuffer?
@@ -203,7 +250,7 @@ class ArtPacks extends EventEmitter
     return undefined
 
   getMeta: (name, type) ->
-    arrayBuffer = @getArrayBuffer name, type, true
+    arrayBuffer = this.getArrayBuffer name, type, true
     return undefined if not arrayBuffer?
 
     encodedString = arrayBufferToString arrayBuffer
@@ -215,24 +262,24 @@ class ArtPacks extends EventEmitter
 
   # revoke all URLs to reload from packs list
   refresh: () ->
-    for url in @blobURLs
+    for url in this.blobURLs
       URL.revokeObjectURL(url)
-    @blobURLs = []
-    @emit 'refresh'
+    this.blobURLs = []
+    this.emit 'refresh'
 
   # delete all loaded packs
   clear: () ->
-    @packs = []
-    @refresh()
+    this.packs = []
+    this.refresh()
 
   getLoadedPacks: () ->
     ret = []
-    for pack in @packs.slice(0).reverse()
+    for pack in this.packs.slice(0).reverse()
       ret.push pack if pack?
     return ret
 
   isQuiescent: () -> # have at least 1 pack loaded, and no more left to go
-    return @getLoadedPacks().length > 0 and Object.keys(@pending).length == 0
+    return this.getLoadedPacks().length > 0 and Object.keys(this.pending).length == 0
 
 # optional 'namespace:' prefix (as in namespace:foo), defaults to anything
 splitNamespace = (name) ->
@@ -245,27 +292,27 @@ splitNamespace = (name) ->
 
 class ArtPackArchive
   # Load pack given binary data + optional informative name
-  constructor: (packData, @name=undefined) ->
+  constructor: (packData, this.name=undefined) ->
     if packData instanceof ArrayBuffer
       # zip with bops uses Uint8Array data view
       packData = new Uint8Array(packData)
-    @zip = new ZIP.Reader(packData)
+    this.zip = new ZIP.Reader(packData)
 
-    @zipEntries = {}
-    @zip.forEach (entry) =>
-      @zipEntries[entry.getName()] = entry
+    this.zipEntries = {}
+    this.zip.forEach (entry) =>
+      this.zipEntries[entry.getName()] = entry
 
-    @namespaces = @scanNamespaces()
-    @namespaces.push 'foo'  # test
+    this.namespaces = this.scanNamespaces()
+    this.namespaces.push 'foo'  # test
 
-  toString: () -> @name ? 'ArtPack'  # TODO: maybe call getDescription()
+  toString: () -> this.name ? 'ArtPack'  # TODO: maybe call getDescription()
 
   # Get list of "namespaces" with a resourcepack
   # all of assets/<foo>
   scanNamespaces: () -> # TODO: only if RP
     namespaces = {}
 
-    for zipEntryName in Object.keys(@zipEntries)
+    for zipEntryName in Object.keys(this.zipEntries)
       parts = zipEntryName.split(path.sep)
       continue if parts.length < 2
       continue if parts[0] != 'assets'
@@ -301,7 +348,7 @@ class ArtPackArchive
       console.log('invalid artpacks resource name (not a string) requested:',name,type)
       throw new Error("invalid artpacks resource name (not a string) requested: #{JSON.stringify(name)} of #{type}")
 
-    pathRP = @nameToPath[type](name)
+    pathRP = this.nameToPath[type](name)
     pathRP += '.mcmeta' if isMeta
 
     found = false
@@ -310,39 +357,39 @@ class ArtPackArchive
     if pathRP.indexOf('*') == -1
       tryPaths = [pathRP]
     else
-      tryPaths = (pathRP.replace('*', namespace) for namespace in @namespaces)
+      tryPaths = (pathRP.replace('*', namespace) for namespace in this.namespaces)
 
     for tryPath in tryPaths
-      zipEntry = @zipEntries[tryPath]
+      zipEntry = this.zipEntries[tryPath]
       if zipEntry?
         return zipEntry.getData()
 
     return undefined # not found
 
-  getFixedPathArrayBuffer: (path) -> @zipEntries[path]?.getData()
+  getFixedPathArrayBuffer: (path) -> this.zipEntries[path]?.getData()
   getPackLogo: () ->
-    return @logoURL if @logoURL
+    return this.logoURL if this.logoURL
 
-    arrayBuffer = @getFixedPathArrayBuffer 'pack.png'
+    arrayBuffer = this.getFixedPathArrayBuffer 'pack.png'
     if arrayBuffer?
       blob = new Blob [arrayBuffer], {type: 'image/png'}
-      @logoURL = URL.createObjectURL blob
+      this.logoURL = URL.createObjectURL blob
     else
       # placeholder for no pack image
       # solid gray 2x2 processed with `pngcrush -rem alla -rem text` (for some reason, 1x1 doesn't crush)
-      @logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII='
+      this.logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII='
 
   getPackJSON: () ->
-    return @json if @json?
+    return this.json if this.json?
 
-    arrayBuffer = @getFixedPathArrayBuffer 'pack.mcmeta'
+    arrayBuffer = this.getFixedPathArrayBuffer 'pack.mcmeta'
     return {} if not arrayBuffer?
 
     str = arrayBufferToString arrayBuffer
-    @json = JSON.parse str
+    this.json = JSON.parse str
 
   getDescription: () ->
-    return @getPackJSON()?.pack?.description ? @name
+    return this.getPackJSON()?.pack?.description ? this.name
 
 module.exports = (opts) ->
   return new ArtPacks(opts)
