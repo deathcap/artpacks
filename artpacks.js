@@ -23,6 +23,11 @@ class ArtPacks extends EventEmitter {
     this.blobURLs = {};
     this.shouldColorize = { 'grass_top':true, 'leaves_oak':true };  // TODO: more comprehensive, configurable
 
+    this.mimeTypes = {
+      textures: 'image/png',
+      sounds: 'audio/ogg'
+    };
+
     this.setMaxListeners(0);    // since each texture can this.on 'loadedAll'.. it adds up
 
     for (let pack of packs) {
@@ -45,7 +50,7 @@ class ArtPacks extends EventEmitter {
       }
 
       this.pending[url] = true;
-      packIndex = this.packs.length;
+      const packIndex = this.packs.length;
       this.packs[packIndex] = null; // save place while loading
       this.emit('loadingURL', url);
       binaryXHR(url, (err, packData) => {
@@ -77,7 +82,7 @@ class ArtPacks extends EventEmitter {
         if (Object.keys(this.pending).length === 0) {
           this.emit('loadedAll');
         }
-      }
+      });
     } else {
       const pack = x;
       this.emit('loadedPack', pack);
@@ -144,7 +149,7 @@ class ArtPacks extends EventEmitter {
     const img = new Image();
 
     function load() {
-      const url = this.getTexture name;
+      const url = this.getTexture(name);
       if (!url) {
         return onerror(`no such texture in artpacks: ${name}`, img);
       }
@@ -174,8 +179,8 @@ class ArtPacks extends EventEmitter {
 
             // load each frame
             frames.forEach((frame) => {
-              const frameImg = new Image()
-              const frameImg.src = frame.image;
+              const frameImg = new Image();
+              frameImg.src = frame.image;
 
               frameImg.onerror = (err) => {
                 onerror(err, img, frameImg);
@@ -217,181 +222,255 @@ class ArtPacks extends EventEmitter {
     return this.getURL(name, 'sounds');
   }
 
-  getURL: (name, type) ->
-    # already have URL?
-    url = this.blobURLs[type + ' ' + name]
-    return url if url?
+  getURL(name, type) {
+    // already have URL?
+    let url = this.blobURLs[type + ' ' + name];
+    if (url !== undefined) return url;
 
-    # get a blob
-    blob = this.getBlob(name, type)
-    return undefined if not blob?
+    // get a blob
+    const blob = this.getBlob(name, type);
+    if (blob === undefined) return undefined;
 
-    # create URL and return
-    url = URL.createObjectURL(blob)
-    this.blobURLs[type + ' ' + name] = url
-    return url
+    // create URL and return
+    url = URL.createObjectURL(blob);
+    this.blobURLs[type + ' ' + name] = url;
+    return url;
+  }
 
-  mimeTypes:
-    textures: 'image/png'
-    sounds: 'audio/ogg'
+  getBlob(name, type) {
+    const arrayBuffer = this.getArrayBuffer(name, type, false);
+    if (arrayBuffer === undefined) return undefined;
 
-  getBlob: (name, type) ->
-    arrayBuffer = this.getArrayBuffer name, type, false
-    return undefined if not arrayBuffer?
+    return new Blob([arrayBuffer], {type: this.mimeTypes[type]});
+  }
 
-    return new Blob [arrayBuffer], {type: this.mimeTypes[type]}
+  getArrayBuffer(name, type, isMeta) {
+    for (let pack of this.packs.slice(0).reverse()) {     // search packs in reverse order
+      if (!pack) continue;
+      const arrayBuffer = pack.getArrayBuffer(name, type, isMeta);
+      if (arrayBuffer !== undefined) return arrayBuffer;
+    }
 
-  getArrayBuffer: (name, type, isMeta) ->
-    for pack in this.packs.slice(0).reverse()     # search packs in reverse order
-      continue if !pack
-      arrayBuffer = pack.getArrayBuffer(name, type, isMeta)
-      return arrayBuffer if arrayBuffer?
+    return undefined;
+  }
 
-    return undefined
+  getMeta(name, type) {
+    const arrayBuffer = this.getArrayBuffer(name, type, true);
+    if (arrayBuffer === undefined) return undefined;
 
-  getMeta: (name, type) ->
-    arrayBuffer = this.getArrayBuffer name, type, true
-    return undefined if not arrayBuffer?
+    const encodedString = arrayBufferToString(arrayBuffer);
+    const decodedString = decodeURIComponent(escape(encodedString));
 
-    encodedString = arrayBufferToString arrayBuffer
-    decodedString = decodeURIComponent(escape(encodedString))
+    const json = JSON.parse(decodedString);
 
-    json = JSON.parse(decodedString)
+    return json;
+  }
 
-    return json
+  // revoke all URLs to reload from packs list
+  refresh() {
+    for (let url of this.blobURLs) {
+      URL.revokeObjectURL(url);
+    }
+    this.blobURLs = [];
+    this.emit('refresh');
+  }
 
-  # revoke all URLs to reload from packs list
-  refresh: () ->
-    for url in this.blobURLs
-      URL.revokeObjectURL(url)
-    this.blobURLs = []
-    this.emit 'refresh'
+  // delete all loaded packs
+  clear() {
+    this.packs = [];
+    this.refresh();
+  }
 
-  # delete all loaded packs
-  clear: () ->
-    this.packs = []
-    this.refresh()
+  getLoadedPacks() {
+    const ret = [];
+    let pack;
+    for (pack of this.packs.slice(0).reverse()) {
+      if (pack !== undefined) ret.push(pack);
+    }
+    return pack;
+  }
 
-  getLoadedPacks: () ->
-    ret = []
-    for pack in this.packs.slice(0).reverse()
-      ret.push pack if pack?
-    return ret
+  isQuiescent() { // have at least 1 pack loaded, and no more left to go
+    return this.getLoadedPacks().length > 0 && Object.keys(this.pending).length === 0;
+  }
+}
 
-  isQuiescent: () -> # have at least 1 pack loaded, and no more left to go
-    return this.getLoadedPacks().length > 0 and Object.keys(this.pending).length == 0
+// optional 'namespace:' prefix (as in namespace:foo), defaults to anything
+function splitNamespace() {
+  const a = name.split(':');
+  let namespace, name;
+  if (a.length > 1) {
+    namespace = a[0];
+    name = a[1];
+  }
+  if (namespace === undefined) {
+    namespace = '*';
+  }
 
-# optional 'namespace:' prefix (as in namespace:foo), defaults to anything
-splitNamespace = (name) ->
-  a = name.split ':'
-  [namespace, name] = a if a.length > 1
-  namespace ?= '*'
-
-  return [namespace, name]
+  return [namespace, name];
+}
 
 
-class ArtPackArchive
-  # Load pack given binary data + optional informative name
-  constructor: (packData, this.name=undefined) ->
-    if packData instanceof ArrayBuffer
-      # zip with bops uses Uint8Array data view
-      packData = new Uint8Array(packData)
-    this.zip = new ZIP.Reader(packData)
+class ArtPackArchive {
+  // Load pack given binary data + optional informative name
+  constructor(packData) {
+    this.name = name;
+    if (packData instanceof ArrayBuffer) {
+      // zip with bops uses Uint8Array data view
+      packData = new Uint8Array(packData);
+    }
+    this.zip = new ZIP.Reader(packData);
 
-    this.zipEntries = {}
-    this.zip.forEach (entry) =>
-      this.zipEntries[entry.getName()] = entry
+    this.zipEntries = {};
+    this.zip.forEach((entry) => {
+      this.zipEntries[entry.getName()] = entry;
+    });
 
-    this.namespaces = this.scanNamespaces()
-    this.namespaces.push 'foo'  # test
+    this.namespaces = this.scanNamespaces();
+  }
 
-  toString: () -> this.name ? 'ArtPack'  # TODO: maybe call getDescription()
+  toString() {
+    if (this.name) {
+      return this.name;
+    } else {
+      return 'ArtPack'; // TODO: maybe call getDescription()
+    }
+  }
 
-  # Get list of "namespaces" with a resourcepack
-  # all of assets/<foo>
-  scanNamespaces: () -> # TODO: only if RP
-    namespaces = {}
+  // Get list of "namespaces" with a resourcepack
+  // all of assets/<foo>
+  scanNamespaces() { // TODO: only if RP
+    const namespaces = {};
 
-    for zipEntryName in Object.keys(this.zipEntries)
-      parts = zipEntryName.split(path.sep)
-      continue if parts.length < 2
-      continue if parts[0] != 'assets'
-      continue if parts[1].length == 0
+    for (let zipEntryName of Object.keys(this.zipEntries)) {
+      const parts = zipEntryName.split(path.sep)
 
-      namespaces[parts[1]] = true
+      if (parts.length < 2) continue;
+      if (parts[0] !== 'assets') continue;
+      if (parts[1].length === 0) continue;
 
-    return Object.keys(namespaces)
+      namespaces[parts[1]] = true;
+    }
 
-  nameToPath:
-    textures: (fullname) ->
-      a = fullname.split '/'
-      [category, partname] = a if a.length > 1
-      # optional category/ prefix, defaults to blocks, i/ shortcut
-      category = {undefined:'blocks', 'i':'items'}[category] ? category
-      partname ?= fullname
+    return Object.keys(namespaces);
+  }
 
-      [namespace, basename] = splitNamespace partname
+  nameToPath(type, fullname) {
+    if (type === 'textures') {
+      const a = fullname.split('/');
+      let category, pathname;
+      if (a.length > 1) {
+        category = a[0];
+        partname = a[1];
+      }
 
-      pathRP = "assets/#{namespace}/textures/#{category}/#{basename}.png"
-      console.log 'artpacks texture:',fullname,[category,namespace,basename]
+      // optional category/ prefix, defaults to blocks, i/ shortcut
+      if (category === 'i') category = 'items';
+      if (category === undefined) category = 'blocks';
+
+      if (partname === undefined) partname = fullname;
+
+      const parts = splitNamespace(partname);
+      const namespace = parts[0];
+      const basename = parts[1];
+
+      const pathRP = `assets/${namespace}/textures/${category}/${basename}.png`;
+      console.log('artpacks texture:',fullname,[category,namespace,basename]);
       
-      return pathRP
+      return pathRP;
+    } else if (type === 'sounds') {
+      const parts = splitNamespace(partname);
+      const namespace = parts[0];
+      const basename = parts[1];
 
-    sounds: (fullname) ->
-      [namespace, name] = splitNamespace fullname
-      # TODO: optional categories to search all
+      // TODO: optional categories to search all
 
-      pathRP = "assets/#{namespace}/sounds/#{name}.ogg"
+      pathRP = `assets/${namespace}/sounds/${name}.ogg`;
+    } else {
+      throw new Error(`no such type: ${type} of ${fullname}`);
+    }
+  }
 
-  getArrayBuffer: (name, type, isMeta=false) ->
-    if typeof name != 'string'
+  getArrayBuffer(name, type, isMeta) {
+    if (isMeta === undefined) isMeta = false;
+
+    if (typeof name !== 'string') {
       console.log('invalid artpacks resource name (not a string) requested:',name,type)
-      throw new Error("invalid artpacks resource name (not a string) requested: #{JSON.stringify(name)} of #{type}")
+      throw new Error(`invalid artpacks resource name (not a string) requested: ${JSON.stringify(name)} of ${type}`);
+    }
 
-    pathRP = this.nameToPath[type](name)
-    pathRP += '.mcmeta' if isMeta
+    let pathRP = this.nameToPath(type, name);
+    if (isMeta) pathRP += '.mcmeta';
 
-    found = false
+    let found = false;
 
-    # expand namespace wildcard, if any
-    if pathRP.indexOf('*') == -1
-      tryPaths = [pathRP]
-    else
-      tryPaths = (pathRP.replace('*', namespace) for namespace in this.namespaces)
+    // expand namespace wildcard, if any
+    let tryPaths = [];
+    if (pathRP.indexOf('*') === -1) {
+      tryPaths.push(pathRP);
+    } else {
+      for (let namespace in this.namespaces) {
+        tryPaths.push(pathRP.replace('*', 'namespace'));
+      }
+    }
 
-    for tryPath in tryPaths
-      zipEntry = this.zipEntries[tryPath]
-      if zipEntry?
-        return zipEntry.getData()
+    for (let tryPath of tryPaths) {
+      const zipEntry = this.zipEntries[tryPath];
+      if (zipEntry !== undefined) {
+        return zipEntry.getData();
+      }
+    }
 
-    return undefined # not found
+    return undefined; // not found
+  }
 
-  getFixedPathArrayBuffer: (path) -> this.zipEntries[path]?.getData()
-  getPackLogo: () ->
-    return this.logoURL if this.logoURL
+  getFixedPathArrayBuffer(path) {
+    if (this.zipEntries[path]) {
+      return this.zipEntries[path].getData();
+    } else {
+      return undefined;
+    }
+  }
 
-    arrayBuffer = this.getFixedPathArrayBuffer 'pack.png'
-    if arrayBuffer?
-      blob = new Blob [arrayBuffer], {type: 'image/png'}
-      this.logoURL = URL.createObjectURL blob
-    else
-      # placeholder for no pack image
-      # solid gray 2x2 processed with `pngcrush -rem alla -rem text` (for some reason, 1x1 doesn't crush)
-      this.logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII='
+  getPackLogo() {
+    if (this.logoURL) {
+      return this.logoURL;
+    }
 
-  getPackJSON: () ->
-    return this.json if this.json?
+    const arrayBuffer = this.getFixedPathArrayBuffer('pack.png');
+    if (arrayBuffer !== undefined) {
+      const blob = new Blob([arrayBuffer], {type: 'image/png'});
+      this.logoURL = URL.createObjectURL(blob);
+    } else {
+      // placeholder for no pack image
+      // solid gray 2x2 processed with `pngcrush -rem alla -rem text` (for some reason, 1x1 doesn't crush)
+      this.logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII=';
+    }
+  }
 
-    arrayBuffer = this.getFixedPathArrayBuffer 'pack.mcmeta'
-    return {} if not arrayBuffer?
+  getPackJSON() {
+    if (this.json !== undefined) return this.json;
 
-    str = arrayBufferToString arrayBuffer
-    this.json = JSON.parse str
+    const arrayBuffer = this.getFixedPathArrayBuffer('pack.mcmeta');
+    if (arrayBuffer === undefined) return {};
 
-  getDescription: () ->
-    return this.getPackJSON()?.pack?.description ? this.name
+    const str = arrayBufferToString(arrayBuffer);
+    this.json = JSON.parse(str);
+  }
 
-module.exports = (opts) ->
-  return new ArtPacks(opts)
+  getDescription() {
+    const json = this.getPackJSON();
+    if (json) {
+      const pack = json.pack;
+      if (pack) {
+        const description = pack.description;
+        return description;
+      }
+    }
+    return this.name;
+  }
+}
 
-
+module.exports = (opts) => {
+  return new ArtPacks(opts);
+}

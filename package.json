@@ -2,7 +2,7 @@
   "name": "artpacks",
   "description": "cascading texture/sound artwork pack loader",
   "version": "0.3.3",
-  "main": "artpacks.coffee",
+  "main": "artpacks.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:deathcap/artpacks.git"
