@@ -53,6 +53,7 @@ class ArtPacks extends EventEmitter {
       const packIndex = this.packs.length;
       this.packs[packIndex] = null; // save place while loading
       this.emit('loadingURL', url);
+      const that = this;
       binaryXHR(url, (err, packData) => {
         if (this.packs[packIndex] != null) {
           console.log(`artpacks warning: index ${packIndex} occupied, expected to be empty while loading ${url}`);
@@ -80,6 +81,10 @@ class ArtPacks extends EventEmitter {
         console.log('artpacks loaded pack:',url);
         this.emit('loadedURL', url);
         if (Object.keys(this.pending).length === 0) {
+          console.log('about to emit on this=',this);
+          console.log('this.emit=',this.emit);
+          console.log('that=',that);
+          console.log('that.emit=',that.emit);
           this.emit('loadedAll');
         }
       });

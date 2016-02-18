@@ -22,7 +22,7 @@
     "graycolorize": "^0.1.1"
   },
   "scripts": {
-    "start": "beefy demo.js"
+    "start": "wzrd demo.js"
   },
   "license": "MIT"
 }
