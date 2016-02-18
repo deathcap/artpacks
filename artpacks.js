@@ -53,7 +53,6 @@ class ArtPacks extends EventEmitter {
       const packIndex = this.packs.length;
       this.packs[packIndex] = null; // save place while loading
       this.emit('loadingURL', url);
-      const that = this;
       binaryXHR(url, (err, packData) => {
         if (this.packs[packIndex] != null) {
           console.log(`artpacks warning: index ${packIndex} occupied, expected to be empty while loading ${url}`);
@@ -81,10 +80,6 @@ class ArtPacks extends EventEmitter {
         console.log('artpacks loaded pack:',url);
         this.emit('loadedURL', url);
         if (Object.keys(this.pending).length === 0) {
-          console.log('about to emit on this=',this);
-          console.log('this.emit=',this.emit);
-          console.log('that=',that);
-          console.log('that.emit=',that.emit);
           this.emit('loadedAll');
         }
       });
@@ -153,7 +148,7 @@ class ArtPacks extends EventEmitter {
   getTextureImage(name, onload, onerror) {
     const img = new Image();
 
-    function load() {
+    const load = () => {
       const url = this.getTexture(name);
       if (!url) {
         return onerror(`no such texture in artpacks: ${name}`, img);
@@ -210,7 +205,7 @@ class ArtPacks extends EventEmitter {
       img.onerror = (err) => {
         onerror(err, img);
       }
-    }
+    };
 
     if (this.isQuiescent()) {
       load();
@@ -273,7 +268,7 @@ class ArtPacks extends EventEmitter {
 
   // revoke all URLs to reload from packs list
   refresh() {
-    for (let url of this.blobURLs) {
+    for (let url in this.blobURLs) {
       URL.revokeObjectURL(url);
     }
     this.blobURLs = [];
@@ -292,7 +287,7 @@ class ArtPacks extends EventEmitter {
     for (pack of this.packs.slice(0).reverse()) {
       if (pack !== undefined) ret.push(pack);
     }
-    return pack;
+    return ret;
   }
 
   isQuiescent() { // have at least 1 pack loaded, and no more left to go
@@ -301,9 +296,9 @@ class ArtPacks extends EventEmitter {
 }
 
 // optional 'namespace:' prefix (as in namespace:foo), defaults to anything
-function splitNamespace() {
+function splitNamespace(name) {
   const a = name.split(':');
-  let namespace, name;
+  let namespace;
   if (a.length > 1) {
     namespace = a[0];
     name = a[1];
@@ -363,7 +358,7 @@ class ArtPackArchive {
   nameToPath(type, fullname) {
     if (type === 'textures') {
       const a = fullname.split('/');
-      let category, pathname;
+      let category, partname;
       if (a.length > 1) {
         category = a[0];
         partname = a[1];
@@ -384,13 +379,14 @@ class ArtPackArchive {
       
       return pathRP;
     } else if (type === 'sounds') {
-      const parts = splitNamespace(partname);
+      const parts = splitNamespace(fullname);
       const namespace = parts[0];
       const basename = parts[1];
 
       // TODO: optional categories to search all
 
-      pathRP = `assets/${namespace}/sounds/${name}.ogg`;
+      const pathRP = `assets/${namespace}/sounds/${name}.ogg`;
+      return pathRP;
     } else {
       throw new Error(`no such type: ${type} of ${fullname}`);
     }
@@ -414,8 +410,8 @@ class ArtPackArchive {
     if (pathRP.indexOf('*') === -1) {
       tryPaths.push(pathRP);
     } else {
-      for (let namespace in this.namespaces) {
-        tryPaths.push(pathRP.replace('*', 'namespace'));
+      for (let namespace of this.namespaces) {
+        tryPaths.push(pathRP.replace('*', namespace));
       }
     }
 
