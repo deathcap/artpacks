@@ -23,7 +23,7 @@
     "coffeeify": "^0.6.0"
   },
   "scripts": {
-    "start": "beefy demo.coffee"
+    "start": "beefy demo.js"
   },
   "browserify": {
     "transform": [
