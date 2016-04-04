@@ -447,6 +447,7 @@ class ArtPackArchive {
       // solid gray 2x2 processed with `pngcrush -rem alla -rem text` (for some reason, 1x1 doesn't crush)
       this.logoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVQYV2N48uTJfxBmgDEAg3wOrbpADeoAAAAASUVORK5CYII=';
     }
+    return this.logoURL;
   }
 
   getPackJSON() {
@@ -457,6 +458,7 @@ class ArtPackArchive {
 
     const str = arrayBufferToString(arrayBuffer);
     this.json = JSON.parse(str);
+    return this.json;
   }
 
   getDescription() {
