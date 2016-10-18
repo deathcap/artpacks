@@ -17,8 +17,8 @@
     "zip": "^1.2.0",
     "binary-xhr": "^0.0.2",
     "mcmeta": "^0.1.0",
-    "get-pixels": "^1.0.1",
-    "save-pixels": "^0.3.0",
+    "get-pixels": "^3.3.0",
+    "save-pixels": "^2.3.4",
     "graycolorize": "^0.1.1"
   },
   "scripts": {
